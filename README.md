@@ -384,5 +384,3 @@ Backend  → Implementado
 Frontend → Pendiente
 ```
 
- $env:DB_PASSWORD="Migattenogokui12+"
- $env:APP_JWT_SECRET="TU_SECRETO_JWT_DE_AL_MENOS_32_CARACTERES"

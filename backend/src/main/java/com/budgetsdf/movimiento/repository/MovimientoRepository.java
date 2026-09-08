@@ -10,4 +10,6 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
     List<Movimiento> findAllByOrderByFechaDesc();
 
     List<Movimiento> findByProductoIdOrderByFechaDesc(Long productoId);
-}   
+
+    boolean existsByProductoId(Long productoId);
+}

@@ -8,6 +8,7 @@ import com.budgetsdf.producto.dto.response.ProductoResponse;
 import com.budgetsdf.producto.entity.Producto;
 import com.budgetsdf.producto.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
+import com.budgetsdf.movimiento.repository.MovimientoRepository;
 import java.util.List;
 
 @Service
@@ -15,11 +16,14 @@ public class ProductoService {
 
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
+    private final MovimientoRepository movimientoRepository;
 
     public ProductoService(ProductoRepository productoRepository,
-                           CategoriaRepository categoriaRepository) {
+                        CategoriaRepository categoriaRepository,
+                        MovimientoRepository movimientoRepository) {
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
+        this.movimientoRepository = movimientoRepository;
     }
 
     public ProductoResponse crearProducto(ProductoRequest request) {
@@ -100,6 +104,12 @@ public class ProductoService {
 
         Producto producto = productoRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Producto no encontrado"));
+
+        if (movimientoRepository.existsByProductoId(id)) {
+            throw new BusinessException(
+                    "No se puede eliminar el producto porque tiene movimientos asociados"
+            );
+        }
 
         productoRepository.delete(producto);
     }
