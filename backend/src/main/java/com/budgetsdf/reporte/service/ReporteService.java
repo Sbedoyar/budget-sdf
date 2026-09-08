@@ -78,7 +78,7 @@ public class ReporteService {
                 producto.getId(),
                 producto.getCodigo(),
                 producto.getNombre(),
-                producto.getCategoria(),
+                producto.getCategoria().getNombre(),
                 producto.getUnidadMedida(),
                 producto.getStockActual(),
                 producto.getStockMinimo(),

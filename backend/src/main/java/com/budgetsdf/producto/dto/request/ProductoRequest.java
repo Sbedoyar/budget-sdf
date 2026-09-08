@@ -16,8 +16,8 @@ public class ProductoRequest {
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
-    @NotBlank(message = "La categoría es obligatoria")
-    private String categoria;
+    @NotNull(message = "La categoría es obligatoria")
+    private Long categoriaId;
 
     @NotBlank(message = "La unidad de medida es obligatoria")
     private String unidadMedida;

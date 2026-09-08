@@ -1,5 +1,6 @@
 package com.budgetsdf.producto.entity;
 
+import com.budgetsdf.categoria.entity.Categoria;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,8 +23,9 @@ public class Producto {
     @Column(nullable = false)
     private String nombre;
 
-    @Column(nullable = false)
-    private String categoria;
+    @ManyToOne
+    @JoinColumn(name = "categoria_id", nullable = false)
+    private Categoria categoria;
 
     @Column(name = "unidad_medida", nullable = false)
     private String unidadMedida;

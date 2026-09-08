@@ -1,5 +1,7 @@
 package com.budgetsdf.producto.service;
 
+import com.budgetsdf.categoria.entity.Categoria;
+import com.budgetsdf.categoria.repository.CategoriaRepository;
 import com.budgetsdf.common.exception.BusinessException;
 import com.budgetsdf.producto.dto.request.ProductoRequest;
 import com.budgetsdf.producto.dto.response.ProductoResponse;
@@ -12,9 +14,12 @@ import java.util.List;
 public class ProductoService {
 
     private final ProductoRepository productoRepository;
+    private final CategoriaRepository categoriaRepository;
 
-    public ProductoService(ProductoRepository productoRepository) {
+    public ProductoService(ProductoRepository productoRepository,
+                           CategoriaRepository categoriaRepository) {
         this.productoRepository = productoRepository;
+        this.categoriaRepository = categoriaRepository;
     }
 
     public ProductoResponse crearProducto(ProductoRequest request) {
@@ -23,28 +28,19 @@ public class ProductoService {
             throw new BusinessException("Ya existe un producto con ese código");
         }
 
+        Categoria categoria = buscarCategoria(request.getCategoriaId());
         Producto producto = new Producto();
 
         producto.setCodigo(request.getCodigo());
         producto.setNombre(request.getNombre());
-        producto.setCategoria(request.getCategoria());
+        producto.setCategoria(categoria);
         producto.setUnidadMedida(request.getUnidadMedida());
         producto.setStockMinimo(request.getStockMinimo());
         producto.setStockActual(0);
 
         Producto productoGuardado = productoRepository.save(producto);
 
-        ProductoResponse response = new ProductoResponse();
-
-        response.setId(productoGuardado.getId());
-        response.setCodigo(productoGuardado.getCodigo());
-        response.setNombre(productoGuardado.getNombre());
-        response.setCategoria(productoGuardado.getCategoria());
-        response.setUnidadMedida(productoGuardado.getUnidadMedida());
-        response.setStockActual(productoGuardado.getStockActual());
-        response.setStockMinimo(productoGuardado.getStockMinimo());
-
-        return response;
+        return convertirAResponse(productoGuardado);
     }
 
     public List<ProductoResponse> listarProductos() {
@@ -61,7 +57,8 @@ public class ProductoService {
         response.setId(producto.getId());
         response.setCodigo(producto.getCodigo());
         response.setNombre(producto.getNombre());
-        response.setCategoria(producto.getCategoria());
+        response.setCategoriaId(producto.getCategoria().getId());
+        response.setCategoria(producto.getCategoria().getNombre());
         response.setUnidadMedida(producto.getUnidadMedida());
         response.setStockActual(producto.getStockActual());
         response.setStockMinimo(producto.getStockMinimo());
@@ -90,7 +87,7 @@ public class ProductoService {
 
         producto.setCodigo(request.getCodigo());
         producto.setNombre(request.getNombre());
-        producto.setCategoria(request.getCategoria());
+        producto.setCategoria(buscarCategoria(request.getCategoriaId()));
         producto.setUnidadMedida(request.getUnidadMedida());
         producto.setStockMinimo(request.getStockMinimo());
 
@@ -105,5 +102,10 @@ public class ProductoService {
                 .orElseThrow(() -> new BusinessException("Producto no encontrado"));
 
         productoRepository.delete(producto);
+    }
+
+    private Categoria buscarCategoria(Long id) {
+        return categoriaRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Categoría no encontrada"));
     }
 }

@@ -1,5 +1,6 @@
 package com.budgetsdf.reporte.service;
 
+import com.budgetsdf.categoria.entity.Categoria;
 import com.budgetsdf.movimiento.entity.Movimiento;
 import com.budgetsdf.movimiento.entity.TipoMovimiento;
 import com.budgetsdf.movimiento.repository.MovimientoRepository;
@@ -107,10 +108,13 @@ class ReporteServiceTests {
     private Producto producto(Long id, String codigo, String nombre,
                               int stockActual, int stockMinimo) {
         Producto producto = new Producto();
+        Categoria categoria = new Categoria();
+        categoria.setId(1L);
+        categoria.setNombre("Categoría");
         producto.setId(id);
         producto.setCodigo(codigo);
         producto.setNombre(nombre);
-        producto.setCategoria("Categoría");
+        producto.setCategoria(categoria);
         producto.setUnidadMedida("Unidad");
         producto.setStockActual(stockActual);
         producto.setStockMinimo(stockMinimo);
