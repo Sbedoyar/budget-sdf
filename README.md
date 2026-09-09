@@ -1,32 +1,36 @@
 # Budget SDF
 
-Budget SDF es un sistema de gestión de inventarios desarrollado para la **Tienda El Paraíso**, ubicada en el barrio París de Medellín.
+Budget SDF es un sistema de gestión de inventario desarrollado para la **Tienda El Paraíso**, ubicada en el barrio París de Medellín.
 
-El proyecto hace parte de un Proyecto Pedagógico Integrador (PPI) y busca facilitar el control de productos, entradas y salidas, existencias, alertas de bajo stock y reportes.
-
-Actualmente el **backend está implementado** y el frontend está pendiente de desarrollo.
-
----
+El proyecto busca facilitar el control de productos, entradas y salidas de inventario, alertas de bajo stock y generación de reportes básicos, reemplazando el manejo manual de la información.
 
 ## Tecnologías
 
+### Backend
+
 - Java 17
-- Spring Boot 4.1.1
+- Spring Boot 4
+- Spring Web
 - Spring Data JPA
 - Spring Security
 - JWT
-- Jakarta Validation
-- MySQL 8
-- Maven
+- Bean Validation
 - Lombok
+- Maven
+
+### Base de datos
+
+- MySQL 8
+
+### Frontend
+
+El frontend se encuentra pendiente de desarrollo.
 
 ---
 
 ## Arquitectura
 
-Budget SDF utiliza una arquitectura **cliente-servidor** con una API REST.
-
-El backend está organizado como un **monolito modular** y utiliza arquitectura por capas:
+El backend utiliza una arquitectura por capas:
 
 ```text
 Controller
@@ -38,58 +42,110 @@ Repository
 MySQL
 ```
 
-Las reglas de negocio se encuentran principalmente en los `Service`.
-
----
-
-## Módulos principales
+Los paquetes están organizados por funcionalidad:
 
 ```text
-categoria
-producto
-movimiento
-alerta
-reporte
-usuario
-common
+com.budgetsdf
+├── alert
+├── category
+├── common
+├── movement
+├── product
+├── report
+└── user
 ```
 
-Cada módulo contiene las capas necesarias como:
-
-```text
-controller
-service
-repository
-entity
-dto
-```
+La lógica de negocio se encuentra principalmente en la capa `Service`.
 
 ---
 
 ## Funcionalidades
 
-El backend permite:
+### Autenticación
 
-- Iniciar sesión.
-- Gestionar categorías.
-- Crear, consultar, actualizar y eliminar productos.
-- Registrar entradas de inventario.
-- Registrar salidas de inventario.
-- Evitar salidas superiores al stock disponible.
-- Consultar el stock actual.
-- Consultar historial de movimientos.
-- Visualizar alertas de bajo stock.
-- Generar reportes de inventario.
-- Generar reportes de movimientos.
-- Proteger endpoints mediante JWT.
+- Inicio de sesión mediante usuario y contraseña.
+- Contraseñas almacenadas utilizando BCrypt.
+- Autenticación mediante JWT.
+- Acceso protegido a los endpoints del sistema.
+
+### Categorías
+
+- Registrar categorías.
+- Consultar categorías.
+- Actualizar categorías.
+- Eliminar categorías sin productos asociados.
+- Validar nombres duplicados.
+
+### Productos
+
+- Registrar productos.
+- Consultar productos.
+- Actualizar información del producto.
+- Eliminar productos sin movimientos asociados.
+- Asignar una categoría.
+- Definir unidad de medida.
+- Definir stock mínimo.
+- Consultar stock actual.
+
+El stock actual no se modifica directamente desde el módulo de productos. Su valor cambia únicamente mediante movimientos de inventario.
+
+### Movimientos de inventario
+
+El sistema maneja dos tipos de movimiento:
+
+- `ENTRADA`
+- `SALIDA`
+
+Una entrada aumenta el stock actual del producto.
+
+Una salida disminuye el stock y valida previamente que exista suficiente inventario.
+
+Cada movimiento conserva información como:
+
+- Producto.
+- Tipo de movimiento.
+- Cantidad.
+- Stock resultante.
+- Fecha.
+- Observación.
+
+Los movimientos forman parte del historial y no se modifican ni eliminan.
+
+### Alertas de bajo stock
+
+El sistema identifica automáticamente productos cuyo stock actual sea menor o igual al stock mínimo definido.
+
+Las alertas se calculan a partir del inventario actual y no requieren una tabla independiente.
+
+### Reportes
+
+El sistema genera:
+
+- Reporte general de inventario.
+- Resumen de productos.
+- Estado de stock.
+- Reporte de movimientos.
+- Totales de entradas y salidas.
+- Historial detallado de movimientos.
+- Resumen de movimientos por producto.
+
+Los estados de inventario utilizados en los reportes son:
+
+- `OUT_OF_STOCK`
+- `LOW_STOCK`
+- `NORMAL`
 
 ---
 
 ## Base de datos
 
-El sistema utiliza MySQL.
+La base de datos utilizada es:
 
-Actualmente existen cuatro tablas principales:
+```text
+budget_sdf
+```
+
+Tablas principales:
 
 ```text
 usuarios
@@ -98,217 +154,168 @@ productos
 movimientos
 ```
 
-Relaciones principales:
-
-```text
-Categoria 1 ───── N Producto
-
-Producto 1 ───── N Movimiento
-```
-
-Cada producto pertenece a una categoría y cada movimiento pertenece a un producto.
-
-Las alertas y reportes se calculan dinámicamente y no necesitan tablas propias.
-
----
-
-## Categorías
-
-Las categorías se almacenan en una tabla independiente.
+Aunque el código Java utiliza nombres en inglés, los nombres físicos existentes de las tablas y columnas de MySQL se mantienen en español mediante los mappings de JPA.
 
 Ejemplo:
 
-```text
-Bebidas
-Granos
-Lácteos
+```java
+@Table(name = "productos")
 ```
 
-Al crear un producto, la API recibe `categoriaId`.
-
-Ejemplo:
-
-```json
-{
-  "codigo": "P001",
-  "nombre": "Coca Cola 1.5L",
-  "categoriaId": 2,
-  "unidadMedida": "Unidad",
-  "stockMinimo": 5
-}
-```
+Esto permite mantener compatibilidad con la base de datos existente sin realizar una migración completa del esquema.
 
 ---
 
-## Movimientos de inventario
+## API REST
 
-Existen dos tipos:
+URL base:
 
 ```text
-ENTRADA
-SALIDA
+http://localhost:8080
 ```
 
-Una entrada aumenta el stock:
+### Autenticación
 
-```text
-stockActual = stockActual + cantidad
-```
-
-Una salida disminuye el stock:
-
-```text
-stockActual = stockActual - cantidad
-```
-
-El sistema no permite una salida superior al stock disponible.
-
-Cada movimiento también almacena el `stockResultante` para conservar la trazabilidad.
-
----
-
-## Alertas de bajo stock
-
-Un producto se considera en bajo stock cuando:
-
-```text
-stockActual <= stockMinimo
-```
-
-Endpoint:
-
-```text
-GET /api/alertas/bajo-stock
-```
-
----
-
-## Reportes
-
-### Inventario
-
-```text
-GET /api/reportes/inventario
-```
-
-Incluye:
-
-- Total de productos.
-- Total de unidades.
-- Productos sin stock.
-- Productos con bajo stock.
-- Productos con stock normal.
-- Detalle de cada producto.
-
-### Movimientos
-
-```text
-GET /api/reportes/movimientos
-```
-
-Incluye:
-
-- Total de movimientos.
-- Total de entradas.
-- Total de salidas.
-- Unidades ingresadas.
-- Unidades retiradas.
-- Balance.
-- Resumen por producto.
-- Historial de movimientos.
-
----
-
-## Autenticación
-
-El login se realiza mediante:
-
-```text
+```http
 POST /api/auth/login
 ```
 
-Ejemplo:
+### Categorías
 
-```json
-{
-  "username": "propietario",
-  "password": "contraseña"
-}
+```http
+GET    /api/categories
+GET    /api/categories/{id}
+POST   /api/categories
+PUT    /api/categories/{id}
+DELETE /api/categories/{id}
 ```
 
-Si las credenciales son correctas, el backend devuelve un token JWT.
+### Productos
 
-Los demás endpoints protegidos utilizan:
+```http
+GET    /api/products
+GET    /api/products/{id}
+POST   /api/products
+PUT    /api/products/{id}
+DELETE /api/products/{id}
+```
 
-```text
-Authorization: Bearer <token>
+### Movimientos
+
+```http
+GET  /api/movements
+GET  /api/movements/product/{productId}
+POST /api/movements
+```
+
+También se puede consultar el historial de movimientos de un producto mediante el endpoint definido en el controlador de movimientos.
+
+### Alertas
+
+```http
+GET /api/alerts/low-stock
+```
+
+### Reportes
+
+```http
+GET /api/reports/inventory
+GET /api/reports/movements
 ```
 
 ---
 
-## Endpoints principales
+## Ejemplo de producto
+
+```json
+{
+  "code": "P001",
+  "name": "Coca Cola 1.5L",
+  "categoryId": 2,
+  "unitOfMeasure": "Unidad",
+  "minimumStock": 5
+}
+```
+
+El sistema asigna inicialmente:
 
 ```text
-POST   /api/auth/login
+currentStock = 0
+```
 
-POST   /api/categorias
-GET    /api/categorias
-GET    /api/categorias/{id}
-PUT    /api/categorias/{id}
-DELETE /api/categorias/{id}
+El inventario aumenta o disminuye posteriormente mediante movimientos.
 
-POST   /api/productos
-GET    /api/productos
-GET    /api/productos/{id}
-PUT    /api/productos/{id}
-DELETE /api/productos/{id}
+---
 
-POST   /api/movimientos
-GET    /api/movimientos
-GET    /api/movimientos/producto/{productoId}
+## Seguridad
 
-GET    /api/alertas/bajo-stock
+Todos los endpoints principales requieren autenticación mediante JWT, excepto:
 
-GET    /api/reportes/inventario
-GET    /api/reportes/movimientos
+```http
+POST /api/auth/login
+```
+
+El token debe enviarse en las peticiones protegidas utilizando:
+
+```http
+Authorization: Bearer <token>
+```
+
+El rol actualmente utilizado es:
+
+```text
+PROPIETARIO
 ```
 
 ---
 
 ## Variables de entorno
 
-Las credenciales sensibles no se almacenan directamente en el proyecto.
+Para ejecutar el backend se deben configurar las siguientes variables:
 
-Antes de iniciar el backend se deben configurar las variables necesarias:
+```text
+DB_PASSWORD
+APP_JWT_SECRET
+```
+
+Para crear el usuario propietario inicial también pueden utilizarse:
+
+```text
+APP_ADMIN_USERNAME
+APP_ADMIN_PASSWORD
+```
+
+Opcionalmente:
+
+```text
+DB_URL
+DB_USERNAME
+APP_JWT_EXPIRATION_MS
+APP_CORS_ALLOWED_ORIGINS
+```
+
+Ejemplo en PowerShell:
 
 ```powershell
-$env:DB_PASSWORD="TU_PASSWORD_MYSQL"
-
+$env:DB_PASSWORD="tu_contraseña_mysql"
+$env:APP_JWT_SECRET="tu_clave_jwt"
 $env:APP_ADMIN_USERNAME="propietario"
-$env:APP_ADMIN_PASSWORD="TU_PASSWORD_ADMIN"
-
-$env:APP_JWT_SECRET="TU_SECRETO_JWT_DE_AL_MENOS_32_CARACTERES"
+$env:APP_ADMIN_PASSWORD="tu_contraseña"
 ```
 
-La configuración de MySQL utiliza:
-
-```properties
-spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3306/budget_sdf}
-spring.datasource.username=${DB_USERNAME:root}
-spring.datasource.password=${DB_PASSWORD}
-```
+No se deben almacenar contraseñas reales ni secretos directamente en el repositorio.
 
 ---
 
-## Ejecutar el backend
+## Ejecución
 
-Desde:
+Desde la carpeta del backend:
 
-```text
-C:\budgetsdf\backend
+```powershell
+cd backend
 ```
 
-ejecutar:
+Ejecutar:
 
 ```powershell
 .\mvnw.cmd spring-boot:run
@@ -324,32 +331,29 @@ http://localhost:8080
 
 ## Pruebas
 
-Para ejecutar las pruebas automatizadas:
+Para ejecutar todas las pruebas:
 
 ```powershell
 .\mvnw.cmd test
 ```
 
-Actualmente se tienen pruebas para categorías, productos, reportes y flujo de integración.
-
-Última validación:
+Estado actual:
 
 ```text
 Tests run: 18
 Failures: 0
 Errors: 0
 Skipped: 0
-
 BUILD SUCCESS
 ```
 
-También se realizaron pruebas manuales utilizando Postman.
+Las pruebas incluyen servicios y endpoints de integración para validar las principales reglas de negocio.
 
 ---
 
 ## Migración de categorías
 
-Durante el desarrollo, la categoría pasó de ser un texto dentro de `productos` a una relación con la tabla `categorias`.
+Durante el desarrollo se normalizó la categoría de los productos mediante una tabla independiente.
 
 La migración utilizada se conserva en:
 
@@ -357,30 +361,42 @@ La migración utilizada se conserva en:
 backend/database/migrations/001_normalizar_categorias.sql
 ```
 
-Este archivo corresponde al cambio del esquema anterior y **no debe ejecutarse cada vez que inicia la aplicación**.
+Este archivo representa una migración histórica y no debe ejecutarse nuevamente sobre una base de datos que ya tenga aplicada la estructura actual.
 
 ---
 
-## Git
+## Reglas importantes del sistema
 
-El proyecto utiliza las ramas:
-
-```text
-main
-→ versión estable
-
-develop
-→ desarrollo activo
-```
-
-Actualmente el desarrollo continúa sobre `develop`.
+- No se permite registrar dos categorías con el mismo nombre.
+- No se permite registrar dos productos con el mismo código.
+- No se puede registrar un producto con una categoría inexistente.
+- El stock actual comienza en cero.
+- El stock solo cambia mediante entradas y salidas.
+- No se permite una salida superior al stock disponible.
+- No se puede eliminar una categoría que tenga productos asociados.
+- No se puede eliminar un producto que tenga movimientos registrados.
+- Los movimientos se conservan como historial.
+- Las alertas de bajo stock se generan dinámicamente.
+- Los reportes se generan a partir de la información actual del sistema.
 
 ---
 
 ## Estado del proyecto
 
-```text
-Backend  → Implementado
-Frontend → Pendiente
-```
+Actualmente el backend de Budget SDF cuenta con:
+
+- Gestión de categorías.
+- Gestión de productos.
+- Gestión de movimientos.
+- Control de stock.
+- Alertas de bajo stock.
+- Reportes de inventario.
+- Reportes de movimientos.
+- Autenticación con JWT.
+- Persistencia en MySQL.
+- Validaciones de negocio.
+- Manejo global de errores.
+- Pruebas unitarias y de integración.
+
+El frontend se encuentra pendiente de implementación.
 

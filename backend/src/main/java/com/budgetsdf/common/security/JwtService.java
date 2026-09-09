@@ -1,6 +1,6 @@
 package com.budgetsdf.common.security;
 
-import com.budgetsdf.usuario.entity.Usuario;
+import com.budgetsdf.user.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -22,26 +22,26 @@ public class JwtService {
         this.expirationMs = expirationMs;
     }
 
-    public String generarToken(Usuario usuario) {
-        Date ahora = new Date();
+    public String generateToken(User user) {
+        Date now = new Date();
         return Jwts.builder()
-                .subject(usuario.getUsername())
-                .claim("rol", usuario.getRol().name())
-                .issuedAt(ahora)
-                .expiration(new Date(ahora.getTime() + expirationMs))
+                .subject(user.getUsername())
+                .claim("role", user.getRole().name())
+                .issuedAt(now)
+                .expiration(new Date(now.getTime() + expirationMs))
                 .signWith(key)
                 .compact();
     }
 
-    public String obtenerUsername(String token) {
-        return obtenerClaims(token).getSubject();
+    public String getUsername(String token) {
+        return parseClaims(token).getSubject();
     }
 
-    public boolean esValido(String token) {
-        return obtenerClaims(token).getExpiration().after(new Date());
+    public boolean isValid(String token) {
+        return parseClaims(token).getExpiration().after(new Date());
     }
 
-    private Claims obtenerClaims(String token) {
+    private Claims parseClaims(String token) {
         return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
     }
 }
