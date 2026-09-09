@@ -1,7 +1,7 @@
 package com.budgetsdf.common.security;
 
-import com.budgetsdf.usuario.entity.Usuario;
-import com.budgetsdf.usuario.repository.UsuarioRepository;
+import com.budgetsdf.user.entity.User;
+import com.budgetsdf.user.repository.UserRepository;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,11 +19,11 @@ import java.util.List;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
-    private final UsuarioRepository usuarioRepository;
+    private final UserRepository userRepository;
 
-    public JwtAuthenticationFilter(JwtService jwtService, UsuarioRepository usuarioRepository) {
+    public JwtAuthenticationFilter(JwtService jwtService, UserRepository userRepository) {
         this.jwtService = jwtService;
-        this.usuarioRepository = usuarioRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -34,11 +34,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 String token = authorization.substring(7);
-                String username = jwtService.obtenerUsername(token);
-                Usuario usuario = usuarioRepository.findByUsername(username).orElse(null);
-                if (usuario != null && jwtService.esValido(token)) {
+                String username = jwtService.getUsername(token);
+                User user = userRepository.findByUsername(username).orElse(null);
+                if (user != null && jwtService.isValid(token)) {
                     var authentication = new UsernamePasswordAuthenticationToken(
-                            username, null, List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getRol().name())));
+                            username, null, List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             } catch (JwtException | IllegalArgumentException ignored) {
