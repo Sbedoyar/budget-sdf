@@ -1,0 +1,100 @@
+/* =========================================================
+   BUDGET SDF - LOGIN
+   Pantalla de autenticación.
+   ========================================================= */
+
+
+/* =========================================================
+   CONTENEDOR PRINCIPAL
+   ========================================================= */
+
+.login-page {
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background: var(--surface-page);
+}
+
+
+/* =========================================================
+   TARJETA DE LOGIN
+   ========================================================= */
+
+.login-card {
+  width: 100%;
+  max-width: 430px;
+
+  padding: 36px;
+
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+
+  background: white;
+
+  box-shadow: var(--shadow-md);
+}
+
+
+/* =========================================================
+   ENCABEZADO
+   ========================================================= */
+
+.login-header {
+  margin-bottom: 30px;
+
+  text-align: center;
+}
+
+.login-header h1 {
+  margin: 0;
+
+  color: var(--text-primary);
+
+  font-size: 32px;
+}
+
+.login-header p {
+  margin: 8px 0 0;
+
+  color: var(--text-secondary);
+}
+
+
+/* =========================================================
+   FORMULARIO
+   ========================================================= */
+
+.login-form-group {
+  margin-top: 18px;
+}
+
+.login-input {
+  max-width: none;
+}
+
+.login-button {
+  width: 100%;
+
+  margin-top: 24px;
+  padding: 12px;
+}
+
+.login-error {
+  margin-bottom: 0;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .login-card {
+    padding: 24px;
+  }
+}
