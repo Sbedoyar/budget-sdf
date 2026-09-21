@@ -400,3 +400,13 @@ Actualmente el backend de Budget SDF cuenta con:
 
 El frontend se encuentra pendiente de implementación.
 
+
+
+
+Contraseña temporal aca
+
+
+
+$env:DB_PASSWORD="Migattenogokui12+"
+$env:APP_JWT_SECRET="TgpPC+79qI+LZ97vYJP4jI63LJ6jfdS4092azo3+LGs="
+.\mvnw.cmd spring-boot:run
