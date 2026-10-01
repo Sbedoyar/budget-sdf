@@ -31,38 +31,67 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            JwtAuthenticationFilter jwtFilter) throws Exception {
+            JwtAuthenticationFilter jwtFilter
+    ) throws Exception {
 
         return http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> {})
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
                 )
                 .exceptionHandling(exception -> exception
 
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                        .authenticationEntryPoint(
+                                (request, response, authException) -> {
+                                    response.setStatus(
+                                            HttpServletResponse.SC_UNAUTHORIZED
+                                    );
 
-                            response.getWriter().write(
-                                    "{\"status\":401,\"message\":\"No autenticado o token inválido\"}"
-                            );
-                        })
+                                    response.setContentType(
+                                            MediaType.APPLICATION_JSON_VALUE
+                                    );
 
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                                    response.setCharacterEncoding(
+                                            StandardCharsets.UTF_8.name()
+                                    );
 
-                            response.getWriter().write(
-                                    "{\"status\":403,\"message\":\"Acceso denegado\"}"
-                            );
-                        })
+                                    response.getWriter().write(
+                                            "{\"status\":401,\"message\":\"No autenticado o token inválido\"}"
+                                    );
+                                }
+                        )
+
+                        .accessDeniedHandler(
+                                (request, response, accessDeniedException) -> {
+                                    response.setStatus(
+                                            HttpServletResponse.SC_FORBIDDEN
+                                    );
+
+                                    response.setContentType(
+                                            MediaType.APPLICATION_JSON_VALUE
+                                    );
+
+                                    response.setCharacterEncoding(
+                                            StandardCharsets.UTF_8.name()
+                                    );
+
+                                    response.getWriter().write(
+                                            "{\"status\":403,\"message\":\"Acceso denegado\"}"
+                                    );
+                                }
+                        )
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/auth/login",
+                                "/api/auth/google"
+                        ).permitAll()
+
                         .requestMatchers(
                                 "/api/products/**",
                                 "/api/movements/**",
@@ -70,36 +99,57 @@ public class SecurityConfig {
                                 "/api/reports/**",
                                 "/api/categories/**"
                         ).authenticated()
+
                         .anyRequest().denyAll()
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(
+                        jwtFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                )
                 .build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource(
-            @Value("${app.cors.allowed-origins}") String allowedOrigins) {
+            @Value("${app.cors.allowed-origins}")
+            String allowedOrigins
+    ) {
 
-        CorsConfiguration configuration = new CorsConfiguration();
+        CorsConfiguration configuration =
+                new CorsConfiguration();
 
         configuration.setAllowedOrigins(
-                Arrays.stream(allowedOrigins.split(","))
+                Arrays.stream(
+                        allowedOrigins.split(",")
+                )
                         .map(String::trim)
                         .toList()
         );
 
         configuration.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                List.of(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "DELETE",
+                        "OPTIONS"
+                )
         );
 
         configuration.setAllowedHeaders(
-                List.of("Authorization", "Content-Type")
+                List.of(
+                        "Authorization",
+                        "Content-Type"
+                )
         );
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
 
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration(
+                "/**",
+                configuration
+        );
 
         return source;
     }

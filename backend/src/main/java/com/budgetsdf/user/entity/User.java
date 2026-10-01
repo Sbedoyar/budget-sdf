@@ -11,6 +11,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,4 +25,10 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "rol", nullable = false)
     private UserRole role;
+
+    @Column(unique = true)
+    private String email;
+
+    @Column(name = "google_subject", unique = true)
+    private String googleSubject;
 }

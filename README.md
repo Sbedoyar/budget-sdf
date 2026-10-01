@@ -720,13 +720,3 @@ Actualmente Budget SDF cuenta con:
 - Integración completa con la API REST.
 
 El sistema se encuentra funcional e integrado entre frontend, backend y base de datos.
-
-
-
-Contraseña temporal aca
-
-
-
-$env:DB_PASSWORD="Migattenogokui12+"
-$env:APP_JWT_SECRET="TgpPC+79qI+LZ97vYJP4jI63LJ6jfdS4092azo3+LGs="
-.\mvnw.cmd spring-boot:run
