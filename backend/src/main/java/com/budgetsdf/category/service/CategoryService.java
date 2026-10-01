@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Aplica las reglas de negocio para crear, consultar, actualizar y eliminar categorías.
+ */
 @Service
 public class CategoryService {
     private final CategoryRepository categoryRepository;
@@ -22,8 +25,15 @@ public class CategoryService {
         this.productRepository = productRepository;
     }
 
+    /**
+     * Crea una categoría después de normalizar y comprobar que su nombre sea único.
+     *
+     * @param request datos validados de la categoría
+     * @return representación de la categoría creada
+     */
     public CategoryResponse createCategory(CategoryRequest request) {
         String name = normalizeName(request.getName());
+        // La comparación sin distinguir mayúsculas evita nombres duplicados por formato.
         if (categoryRepository.existsByNameIgnoreCase(name)) {
             throw new BusinessException("Ya existe una categoría con ese nombre");
         }
@@ -33,16 +43,35 @@ public class CategoryService {
         return convertToResponse(categoryRepository.save(category));
     }
 
+    /**
+     * Recupera todas las categorías ordenadas alfabéticamente.
+     *
+     * @return categorías preparadas para la respuesta de la API
+     */
     public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findAllByOrderByNameAsc().stream()
                 .map(this::convertToResponse)
                 .toList();
     }
 
+    /**
+     * Busca una categoría por su identificador.
+     *
+     * @param id identificador de la categoría
+     * @return categoría encontrada
+     * @throws BusinessException si no existe la categoría
+     */
     public CategoryResponse findById(Long id) {
         return convertToResponse(findCategory(id));
     }
 
+    /**
+     * Actualiza el nombre de una categoría y conserva la unicidad frente a otras categorías.
+     *
+     * @param id identificador de la categoría que se actualizará
+     * @param request nuevos datos de la categoría
+     * @return representación actualizada
+     */
     public CategoryResponse updateCategory(Long id, CategoryRequest request) {
         Category category = findCategory(id);
         String name = normalizeName(request.getName());
@@ -57,9 +86,16 @@ public class CategoryService {
         return convertToResponse(categoryRepository.save(category));
     }
 
+    /**
+     * Elimina una categoría únicamente cuando ningún producto la utiliza.
+     *
+     * @param id identificador de la categoría que se eliminará
+     * @throws BusinessException si no existe o tiene productos asociados
+     */
     @Transactional
     public void deleteCategory(Long id) {
         Category category = findCategory(id);
+        // Se conserva la integridad de las referencias entre productos y categorías.
         if (productRepository.existsByCategoryId(id)) {
             throw new BusinessException(
                     "No se puede eliminar la categoría porque tiene productos asociados");

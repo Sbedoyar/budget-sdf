@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Datos de entrada de un movimiento; sus validaciones exigen producto y cantidad positiva.
+ */
 @Getter
 @Setter
 public class MovementRequest {

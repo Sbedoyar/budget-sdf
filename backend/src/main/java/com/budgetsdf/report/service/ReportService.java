@@ -13,6 +13,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Construye reportes agregados de existencias y movimientos a partir de los datos persistidos.
+ */
 @Service
 public class ReportService {
     private final ProductRepository productRepository;
@@ -23,6 +26,11 @@ public class ReportService {
         this.movementRepository = movementRepository;
     }
 
+    /**
+     * Genera el detalle de productos y los totales por estado de stock.
+     *
+     * @return reporte general del inventario
+     */
     public InventoryReportResponse generateInventoryReport() {
         List<Product> products = productRepository.findAll();
 
@@ -39,6 +47,11 @@ public class ReportService {
         );
     }
 
+    /**
+     * Genera el resumen global, el desglose por producto y el detalle de movimientos.
+     *
+     * @return reporte de actividad del inventario
+     */
     public MovementReportResponse generateMovementReport() {
         List<Movement> movements = movementRepository.findAllByOrderByDateDesc();
 
@@ -53,6 +66,7 @@ public class ReportService {
         );
     }
 
+    /** Resume cantidades y número de productos para cada estado del stock. */
     private InventorySummaryResponse createInventorySummary(
             List<InventoryProductResponse> products) {
         long totalUnitsInStock = products.stream()
@@ -66,6 +80,7 @@ public class ReportService {
                 products.size(), totalUnitsInStock, lowStock, outOfStock, normalStock);
     }
 
+    /** Cuenta productos cuyo estado coincide con el indicado. */
     private long countProductsByStatus(List<InventoryProductResponse> products,
                                            StockStatus status) {
         return products.stream()
@@ -73,6 +88,7 @@ public class ReportService {
                 .count();
     }
 
+    /** Convierte una entidad de producto en el detalle usado por el reporte. */
     private InventoryProductResponse createProductDetail(Product product) {
         return new InventoryProductResponse(
                 product.getId(),
@@ -86,6 +102,7 @@ public class ReportService {
         );
     }
 
+    /** Clasifica el producto como agotado, bajo o normal según sus niveles actuales. */
     private StockStatus determineStockStatus(Product product) {
         if (product.getCurrentStock() == 0) {
             return StockStatus.OUT_OF_STOCK;
@@ -96,6 +113,7 @@ public class ReportService {
         return StockStatus.NORMAL;
     }
 
+    /** Calcula cantidades de movimientos, unidades y balance global. */
     private MovementSummaryResponse createMovementSummary(List<Movement> movements) {
         long totalInbound = countMovementsByType(movements, MovementType.ENTRADA);
         long totalOutbound = countMovementsByType(movements, MovementType.SALIDA);
@@ -109,6 +127,7 @@ public class ReportService {
         );
     }
 
+    /** Agrupa los movimientos por producto y ordena sus resúmenes por nombre e identificador. */
     private List<ProductMovementSummaryResponse> createProductSummary(
             List<Movement> movements) {
         Map<Long, List<Movement>> movementsByProduct = movements.stream()
@@ -124,6 +143,7 @@ public class ReportService {
                 .toList();
     }
 
+        /** Calcula los totales de entrada, salida y balance para un producto. */
         private ProductMovementSummaryResponse createProductSummaryForMovements(List<Movement> movements) {
         Movement firstMovement = movements.get(0);
         Product product = firstMovement.getProduct();
@@ -140,12 +160,14 @@ public class ReportService {
         );
     }
 
+    /** Cuenta los movimientos que pertenecen al tipo indicado. */
     private long countMovementsByType(List<Movement> movements, MovementType type) {
         return movements.stream()
                 .filter(movement -> movement.getType() == type)
                 .count();
     }
 
+    /** Suma las unidades registradas para el tipo de movimiento indicado. */
     private long sumUnitsByType(List<Movement> movements, MovementType type) {
         return movements.stream()
                 .filter(movement -> movement.getType() == type)
@@ -153,6 +175,7 @@ public class ReportService {
                 .sum();
     }
 
+    /** Convierte un movimiento persistido en una fila detallada del reporte. */
     private MovementDetailResponse createMovementDetail(Movement movement) {
         Product product = movement.getProduct();
         return new MovementDetailResponse(

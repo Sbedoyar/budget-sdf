@@ -5,6 +5,9 @@ import lombok.Getter;
 
 import java.util.List;
 
+/**
+ * Respuesta del reporte con agregados globales, agrupación por producto y detalle.
+ */
 @Getter
 @AllArgsConstructor
 public class MovementReportResponse {

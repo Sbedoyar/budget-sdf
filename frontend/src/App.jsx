@@ -9,11 +9,13 @@ import MovementsPage from './pages/MovementsPage'
 import AlertsPage from './pages/AlertsPage'
 import ReportsPage from './pages/ReportsPage'
 
+// Centraliza las rutas públicas, las páginas protegidas y las redirecciones de la aplicación.
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
 
+      {/* Las rutas de gestión comparten una verificación de sesión y el layout principal. */}
       <Route
         element={
           <ProtectedRoute>

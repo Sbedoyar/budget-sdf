@@ -12,11 +12,21 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 
+/**
+ * Verifica credenciales de Google y extrae la identidad mínima necesaria para el acceso.
+ */
 @Service
 public class GoogleTokenService {
 
     private final GoogleIdTokenVerifier verifier;
 
+    /**
+     * Construye el verificador limitado al identificador de cliente configurado.
+     *
+     * @param clientId identificador OAuth de la aplicación
+     * @throws GeneralSecurityException si no se puede preparar el transporte seguro
+     * @throws IOException si ocurre un error de entrada o salida durante la configuración
+     */
     public GoogleTokenService(
             @Value("${app.google.client-id}") String clientId
     ) throws GeneralSecurityException, IOException {
@@ -29,6 +39,13 @@ public class GoogleTokenService {
                 .build();
     }
 
+    /**
+     * Valida la credencial, el correo verificado y la identidad entregada por Google.
+     *
+     * @param credential token de identidad recibido del cliente
+     * @return identificador estable de Google y correo normalizado
+     * @throws BusinessException si la credencial no es válida o no permite identificar al usuario
+     */
     public GoogleUserInfo verify(String credential) {
 
         if (credential == null || credential.isBlank()) {
@@ -46,6 +63,7 @@ public class GoogleTokenService {
                 );
             }
 
+            // No se acepta una identidad de Google cuyo correo no haya sido verificado.
             GoogleIdToken.Payload payload = idToken.getPayload();
 
             if (!Boolean.TRUE.equals(payload.getEmailVerified())) {
@@ -76,6 +94,7 @@ public class GoogleTokenService {
         }
     }
 
+    /** Datos de identidad verificados que consume el servicio de usuarios. */
     public record GoogleUserInfo(
             String subject,
             String email

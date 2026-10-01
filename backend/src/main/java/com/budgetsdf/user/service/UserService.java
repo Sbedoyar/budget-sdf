@@ -13,6 +13,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Valida las credenciales de acceso y genera respuestas de autenticación para los usuarios.
+ */
 @Service
 public class UserService {
 
@@ -36,6 +39,13 @@ public class UserService {
         this.expirationMs = expirationMs;
     }
 
+        /**
+         * Autentica con nombre de usuario y contraseña y emite un token JWT.
+         *
+         * @param request credenciales tradicionales del usuario
+         * @return token y datos básicos de la sesión autenticada
+         * @throws BusinessException si el usuario o la contraseña no son válidos
+         */
     public LoginResponse login(LoginRequest request) {
 
         User user = userRepository
@@ -46,6 +56,7 @@ public class UserService {
                         )
                 );
 
+        // La contraseña recibida se compara con el hash almacenado, nunca en texto plano.
         if (!passwordEncoder.matches(
                 request.getPassword(),
                 user.getPassword()
@@ -58,6 +69,13 @@ public class UserService {
         return createLoginResponse(user);
     }
 
+        /**
+         * Verifica la credencial de Google y asocia su identidad con una cuenta autorizada.
+         *
+         * @param request credencial de identidad emitida por Google
+         * @return token y datos básicos de la sesión autenticada
+         * @throws BusinessException si Google no valida la identidad o la cuenta no está autorizada
+         */
     @Transactional
     public LoginResponse loginWithGoogle(
             GoogleLoginRequest request
@@ -68,12 +86,14 @@ public class UserService {
                         request.getCredential()
                 );
 
+        // Primero se busca el identificador estable de Google para reconocer cuentas vinculadas.
         User user = userRepository
                 .findByGoogleSubject(googleUser.subject())
                 .orElse(null);
 
         if (user == null) {
 
+            // Solo se vincula Google a una cuenta local previamente autorizada por correo.
             user = userRepository
                     .findByEmail(googleUser.email())
                     .orElseThrow(() ->
@@ -102,6 +122,12 @@ public class UserService {
         return createLoginResponse(user);
     }
 
+        /**
+         * Construye la respuesta común para ambos métodos de autenticación.
+         *
+         * @param user usuario autenticado
+         * @return JWT firmado, tipo de token, rol y vigencia en segundos
+         */
     private LoginResponse createLoginResponse(User user) {
 
         return new LoginResponse(

@@ -28,6 +28,7 @@ import {
 } from '../services/reportService'
 import '../styles/pages/dashboard.css'
 
+// Resume inventario, actividad reciente y alertas mediante datos combinados de varios endpoints.
 function DashboardPage() {
   const username = localStorage.getItem('username') || 'propietario'
 
@@ -37,6 +38,7 @@ function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  // Carga en paralelo los reportes y las alertas que alimentan los indicadores del dashboard.
   useEffect(() => {
     let cancelled = false
 
@@ -75,6 +77,7 @@ function DashboardPage() {
     }
   }, [])
 
+  // Agrupa cantidades de entrada y salida por día para los últimos siete días.
   const movementChartData = useMemo(() => {
     const movements = movementReport?.movements || []
     const days = []
@@ -131,6 +134,7 @@ function DashboardPage() {
     return days
   }, [movementReport])
 
+  // Prepara los conteos de stock para el gráfico y su leyenda.
   const inventoryStatusData = useMemo(() => {
     if (!inventoryReport) {
       return []

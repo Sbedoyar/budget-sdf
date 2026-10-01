@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Gestiona el catálogo de productos y sus reglas de integridad.
+ */
 @Service
 public class ProductService {
 
@@ -27,6 +30,13 @@ public class ProductService {
         this.movementRepository = movementRepository;
     }
 
+    /**
+     * Crea un producto con stock inicial en cero y una categoría existente.
+     *
+     * @param request datos validados del producto
+     * @return producto creado en formato de respuesta
+     * @throws BusinessException si el código ya existe o la categoría no existe
+     */
     public ProductResponse createProduct(ProductRequest request) {
 
         String code = request.getCode().trim();
@@ -53,6 +63,11 @@ public class ProductService {
         return convertToResponse(savedProduct);
     }
 
+    /**
+     * Recupera el catálogo completo de productos.
+     *
+     * @return productos convertidos al formato de respuesta
+     */
     public List<ProductResponse> getAllProducts() {
 
         return productRepository.findAll()
@@ -61,6 +76,13 @@ public class ProductService {
                 .toList();
     }
 
+    /**
+     * Busca un producto por su identificador.
+     *
+     * @param id identificador del producto
+     * @return producto encontrado
+     * @throws BusinessException si el producto no existe
+     */
     public ProductResponse findById(Long id) {
 
         Product product = productRepository.findById(id)
@@ -69,6 +91,14 @@ public class ProductService {
         return convertToResponse(product);
     }
 
+    /**
+     * Actualiza los datos descriptivos y la categoría de un producto existente.
+     *
+     * @param id identificador del producto
+     * @param request nuevos datos validados del producto
+     * @return producto actualizado
+     * @throws BusinessException si el producto, el código único o la categoría no son válidos
+     */
     public ProductResponse updateProduct(Long id, ProductRequest request) {
 
         Product product = productRepository.findById(id)
@@ -94,11 +124,18 @@ public class ProductService {
         return convertToResponse(updatedProduct);
     }
 
+    /**
+     * Elimina un producto solo si no tiene movimientos de inventario registrados.
+     *
+     * @param id identificador del producto
+     * @throws BusinessException si el producto no existe o tiene movimientos asociados
+     */
     public void deleteProduct(Long id) {
 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Producto no encontrado"));
 
+        // El historial de movimientos depende del producto y no debe quedar sin referencia.
         if (movementRepository.existsByProductId(id)) {
             throw new BusinessException(
                     "No se puede eliminar el producto porque tiene movimientos asociados"

@@ -6,6 +6,9 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+/**
+ * Información de un movimiento devuelta por los endpoints de inventario.
+ */
 @Getter
 @Setter
 public class MovementResponse {

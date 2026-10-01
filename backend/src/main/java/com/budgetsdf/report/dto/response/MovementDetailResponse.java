@@ -6,6 +6,9 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+/**
+ * Datos de un movimiento individual dentro del reporte de actividad.
+ */
 @Getter
 @AllArgsConstructor
 public class MovementDetailResponse {

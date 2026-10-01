@@ -3,6 +3,9 @@ package com.budgetsdf.report.dto.response;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * Totales de movimientos y balance de unidades correspondientes a un producto.
+ */
 @Getter
 @AllArgsConstructor
 public class ProductMovementSummaryResponse {

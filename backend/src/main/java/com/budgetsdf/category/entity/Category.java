@@ -10,6 +10,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Entidad persistente que representa una categoría de productos.
+ */
 @Entity
 @Table(name = "categorias")
 @Getter

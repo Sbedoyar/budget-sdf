@@ -24,6 +24,7 @@ import {
 } from '../services/productService'
 import '../styles/pages/products.css'
 
+// Administra productos, categorías, filtros locales y las operaciones de creación, edición y borrado.
 function ProductsPage() {
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
@@ -49,6 +50,7 @@ function ProductsPage() {
 
   const codeInputRef = useRef(null)
 
+  // Carga en paralelo el catálogo y las categorías necesarias para el formulario.
   useEffect(() => {
     let cancelled = false
 
@@ -84,6 +86,7 @@ function ProductsPage() {
     }
   }, [])
 
+  // Clasifica el stock para los indicadores y filtros de la página.
   const getStockStatus = (product) => {
     if (product.currentStock === 0) {
       return 'OUT_OF_STOCK'
@@ -96,6 +99,7 @@ function ProductsPage() {
     return 'NORMAL'
   }
 
+  // Calcula los totales de unidades y productos por estado a partir del catálogo cargado.
   const stockSummary = useMemo(() => {
     return products.reduce(
       (summary, product) => {
@@ -122,6 +126,7 @@ function ProductsPage() {
     )
   }, [products])
 
+  // Combina la búsqueda textual con los filtros seleccionados de categoría y stock.
   const filteredProducts = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
 
@@ -178,6 +183,7 @@ function ProductsPage() {
     focusForm()
   }
 
+  // Normaliza y valida los campos antes de crear o actualizar; luego sincroniza la lista.
   const handleSubmit = async (event) => {
     event.preventDefault()
 
@@ -251,6 +257,7 @@ function ProductsPage() {
     setProductToDelete(product)
   }
 
+  // Confirma el borrado y vuelve a cargar el catálogo para reflejar el resultado del backend.
   const handleDeleteConfirm = async () => {
     if (!productToDelete) {
       return
@@ -285,6 +292,7 @@ function ProductsPage() {
     }
   }
 
+  // Restablece simultáneamente la búsqueda y los filtros activos.
   const clearFilters = () => {
     setSearchTerm('')
     setCategoryFilter('')

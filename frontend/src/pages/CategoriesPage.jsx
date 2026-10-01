@@ -18,6 +18,7 @@ import {
 } from '../services/categoryService'
 import '../styles/pages/categories.css'
 
+// Administra el ciclo CRUD de categorías, su búsqueda local y los estados de carga y feedback.
 function CategoriesPage() {
   const [categories, setCategories] = useState([])
   const [name, setName] = useState('')
@@ -33,6 +34,7 @@ function CategoriesPage() {
 
   const nameInputRef = useRef(null)
 
+  // Carga las categorías al entrar y evita actualizar el estado si la página ya se desmontó.
   useEffect(() => {
     let cancelled = false
 
@@ -64,6 +66,7 @@ function CategoriesPage() {
     }
   }, [])
 
+  // Filtra en el cliente por nombre, sin distinguir mayúsculas ni espacios exteriores.
   const filteredCategories = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
 
@@ -76,6 +79,7 @@ function CategoriesPage() {
     )
   }, [categories, searchTerm])
 
+  // Vuelve a consultar el endpoint después de una operación que modifica el catálogo.
   const refreshCategories = async () => {
     const data = await getCategories()
     setCategories(data)
@@ -100,6 +104,7 @@ function CategoriesPage() {
     })
   }
 
+  // Valida el nombre y decide entre crear o actualizar según el identificador en edición.
   const handleSubmit = async (event) => {
     event.preventDefault()
 
@@ -155,6 +160,7 @@ function CategoriesPage() {
     setCategoryToDelete(category)
   }
 
+  // Confirma el borrado, actualiza el listado y muestra el resultado de la operación.
   const handleDeleteConfirm = async () => {
     if (!categoryToDelete) {
       return

@@ -20,14 +20,26 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Configura autenticación sin sesión, autorización HTTP, manejo de errores y CORS.
+ */
 @Configuration
 public class SecurityConfig {
 
+        /** Proporciona BCrypt para codificar y comparar contraseñas. */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+        /**
+         * Define las reglas de seguridad de la API y agrega el filtro JWT antes de la autenticación estándar.
+         *
+         * @param http configuración HTTP de Spring Security
+         * @param jwtFilter filtro que autentica solicitudes con tokens Bearer
+         * @return cadena de filtros configurada para la aplicación
+         * @throws Exception si Spring no puede construir la cadena de seguridad
+         */
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
@@ -86,12 +98,14 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
 
+                        // El acceso inicia sin token solo por los endpoints de autenticación.
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/auth/login",
                                 "/api/auth/google"
                         ).permitAll()
 
+                        // Los recursos funcionales requieren una identidad establecida por el filtro JWT.
                         .requestMatchers(
                                 "/api/products/**",
                                 "/api/movements/**",
@@ -100,6 +114,7 @@ public class SecurityConfig {
                                 "/api/categories/**"
                         ).authenticated()
 
+                        // Cualquier ruta que no esté declarada explícitamente queda bloqueada.
                         .anyRequest().denyAll()
                 )
                 .addFilterBefore(
@@ -109,6 +124,12 @@ public class SecurityConfig {
                 .build();
     }
 
+        /**
+         * Permite los orígenes, métodos y encabezados definidos en la configuración de la aplicación.
+         *
+         * @param allowedOrigins lista de orígenes autorizados separada por comas
+         * @return origen de configuración CORS aplicado a todas las rutas
+         */
     @Bean
     public CorsConfigurationSource corsConfigurationSource(
             @Value("${app.cors.allowed-origins}")

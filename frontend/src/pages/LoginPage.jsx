@@ -17,6 +17,7 @@ import {
 } from '../services/authService'
 import '../styles/pages/login.css'
 
+// Gestiona el acceso local y con Google; ambas opciones guardan la sesión y conducen al dashboard.
 function LoginPage() {
   const navigate = useNavigate()
 
@@ -26,6 +27,7 @@ function LoginPage() {
   const [googleMessage, setGoogleMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // Envía usuario y contraseña al servicio y comunica errores devueltos por el backend.
   const handleSubmit = async (event) => {
     event.preventDefault()
 
@@ -46,6 +48,7 @@ function LoginPage() {
     }
   }
 
+  // Envía al backend la credencial emitida por Google para que valide la identidad y cree el JWT.
   const handleGoogleSuccess = async (credentialResponse) => {
     setError('')
     setGoogleMessage('')
@@ -77,6 +80,7 @@ function LoginPage() {
     }
   }
 
+  // Presenta un mensaje cuando el proveedor no completa la autenticación.
   const handleGoogleError = () => {
     setGoogleMessage('')
     setError(

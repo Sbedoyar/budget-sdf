@@ -8,6 +8,9 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entidad que conserva cada cambio de inventario y el stock posterior al movimiento.
+ */
 @Entity
 @Table(name = "movimientos")
 @Getter

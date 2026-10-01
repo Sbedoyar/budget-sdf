@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Entidad persistente de usuario, con credenciales locales y datos opcionales de Google SSO.
+ */
 @Entity
 @Table(name = "usuarios")
 @Getter

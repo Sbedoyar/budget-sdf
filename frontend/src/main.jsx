@@ -1,3 +1,4 @@
+// Punto de entrada: monta React, configura Google OAuth y habilita el enrutamiento del navegador.
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'

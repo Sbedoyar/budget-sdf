@@ -3,6 +3,9 @@ package com.budgetsdf.product.dto.response;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Datos de un producto expuestos por la API, incluida su categoría y nivel de stock.
+ */
 @Getter
 @Setter
 public class ProductResponse {

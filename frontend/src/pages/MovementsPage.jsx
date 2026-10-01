@@ -23,6 +23,7 @@ import {
 import { getProducts } from '../services/productService'
 import '../styles/pages/movements.css'
 
+// Registra entradas y salidas, muestra una vista previa del stock y permite consultar el historial.
 function MovementsPage() {
   const [movements, setMovements] = useState([])
   const [products, setProducts] = useState([])
@@ -43,6 +44,7 @@ function MovementsPage() {
 
   const productSelectRef = useRef(null)
 
+  // Obtiene en paralelo el historial y el catálogo requerido para seleccionar productos.
   useEffect(() => {
     let cancelled = false
 
@@ -86,6 +88,7 @@ function MovementsPage() {
     [products, productId],
   )
 
+  // Resume cantidad de operaciones y unidades recibidas o retiradas.
   const movementSummary = useMemo(() => {
     return movements.reduce(
       (summary, movement) => {
@@ -111,6 +114,7 @@ function MovementsPage() {
     )
   }, [movements])
 
+  // Filtra el historial por producto/observación, tipo y producto seleccionado.
   const filteredMovements = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
 
@@ -133,6 +137,7 @@ function MovementsPage() {
     })
   }, [movements, searchTerm, typeFilter, productFilter])
 
+  // Calcula en el cliente el stock resultante y detecta salidas superiores al disponible.
   const requestedQuantity = Number(quantity || 0)
 
   const exceedsAvailableStock =
@@ -149,6 +154,7 @@ function MovementsPage() {
           : selectedProduct.currentStock
       : selectedProduct?.currentStock
 
+  // Sincroniza movimientos y productos luego de registrar una operación.
   const refreshData = async () => {
     const [movementsData, productsData] = await Promise.all([
       getMovements(),
@@ -184,6 +190,7 @@ function MovementsPage() {
     })
   }
 
+  // Valida los datos y el stock antes de enviar el movimiento al backend.
   const handleSubmit = async (event) => {
     event.preventDefault()
 
@@ -234,6 +241,7 @@ function MovementsPage() {
     }
   }
 
+  // Limpia simultáneamente los criterios aplicados al historial.
   const clearFilters = () => {
     setSearchTerm('')
     setTypeFilter('')
@@ -243,6 +251,7 @@ function MovementsPage() {
   const hasActiveFilters =
     searchTerm || typeFilter || productFilter
 
+  // Presenta las fechas del historial con formato local de Colombia.
   const formatMovementDate = (date) => {
     return new Intl.DateTimeFormat('es-CO', {
       dateStyle: 'medium',

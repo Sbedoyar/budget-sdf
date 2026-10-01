@@ -15,6 +15,7 @@ import {
 import { getLowStockAlerts } from '../services/alertService'
 import '../styles/pages/alerts.css'
 
+// Consulta alertas de inventario y permite buscarlas, filtrarlas y priorizarlas localmente.
 function AlertsPage() {
   const [alerts, setAlerts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -25,6 +26,7 @@ function AlertsPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [sortOrder, setSortOrder] = useState('critical')
 
+  // Actualiza las alertas; distingue la carga inicial de la actualización solicitada por el usuario.
   const fetchAlerts = async (showRefreshState = false) => {
     try {
       if (showRefreshState) {
@@ -48,6 +50,7 @@ function AlertsPage() {
     }
   }
 
+  // Carga la lista inicial y evita actualizar el componente tras desmontarse.
   useEffect(() => {
     let cancelled = false
 
@@ -79,6 +82,7 @@ function AlertsPage() {
     }
   }, [])
 
+  // Cuenta productos agotados y productos que permanecen bajo el mínimo.
   const summary = useMemo(() => {
     return alerts.reduce(
       (result, alert) => {
@@ -97,6 +101,7 @@ function AlertsPage() {
     )
   }, [alerts])
 
+  // Filtra por código/nombre/estado y ordena por criticidad, stock o nombre.
   const filteredAlerts = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
 
@@ -139,6 +144,7 @@ function AlertsPage() {
     })
   }, [alerts, searchTerm, statusFilter, sortOrder])
 
+  // Restaura los filtros y el orden de criticidad predeterminado.
   const clearFilters = () => {
     setSearchTerm('')
     setStatusFilter('')

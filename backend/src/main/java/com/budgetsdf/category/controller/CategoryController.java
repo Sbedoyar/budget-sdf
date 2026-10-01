@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Recibe las solicitudes HTTP de categorías y delega su procesamiento al servicio.
+ */
 @RestController
 @RequestMapping("/api/categories")
 public class CategoryController {
@@ -28,6 +31,12 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
+    /**
+     * Registra una categoría a partir de los datos validados del cuerpo.
+     *
+     * @param request datos de la categoría
+     * @return categoría creada con estado HTTP 201
+     */
     @PostMapping
     public ResponseEntity<CategoryResponse> createCategory(
             @Valid @RequestBody CategoryRequest request) {
@@ -36,16 +45,34 @@ public class CategoryController {
                 .body(categoryService.createCategory(request));
     }
 
+    /**
+     * Lista las categorías disponibles.
+     *
+     * @return categorías ordenadas por nombre
+     */
     @GetMapping
     public ResponseEntity<List<CategoryResponse>> getAllCategories() {
         return ResponseEntity.ok(categoryService.getAllCategories());
     }
 
+    /**
+     * Consulta una categoría por su identificador.
+     *
+     * @param id identificador recibido en la ruta
+     * @return categoría encontrada
+     */
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(categoryService.findById(id));
     }
 
+    /**
+     * Actualiza una categoría existente con los datos validados recibidos.
+     *
+     * @param id identificador recibido en la ruta
+     * @param request nuevos datos de la categoría
+     * @return categoría actualizada
+     */
     @PutMapping("/{id}")
     public ResponseEntity<CategoryResponse> updateCategory(
             @PathVariable Long id,
@@ -56,6 +83,12 @@ public class CategoryController {
         );
     }
 
+    /**
+     * Elimina una categoría si no tiene productos asociados.
+     *
+     * @param id identificador recibido en la ruta
+     * @return mensaje de confirmación
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteCategory(
             @PathVariable Long id) {

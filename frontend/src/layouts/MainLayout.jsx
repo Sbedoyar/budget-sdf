@@ -13,12 +13,14 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { logout } from '../services/authService'
 import '../styles/layout.css'
 
+// Proporciona navegación común, datos de sesión visibles y el espacio para la página activa.
 function MainLayout() {
   const navigate = useNavigate()
 
   const username = localStorage.getItem('username') || 'Propietario'
   const role = localStorage.getItem('role') || 'PROPIETARIO'
 
+  // Cierra la sesión local y navega a la pantalla de inicio de sesión.
   const handleLogout = () => {
     logout()
     navigate('/login')

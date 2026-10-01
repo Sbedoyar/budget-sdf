@@ -39,6 +39,7 @@ import {
 } from '../services/reportService'
 import '../styles/pages/reports.css'
 
+// Presenta reportes de inventario y movimientos con filtros y agregados calculados localmente.
 function ReportsPage() {
   const [inventoryReport, setInventoryReport] = useState(null)
   const [movementReport, setMovementReport] = useState(null)
@@ -54,6 +55,7 @@ function ReportsPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
 
+  // Solicita en paralelo los reportes de inventario y movimientos al cargar la página.
   useEffect(() => {
     let cancelled = false
 
@@ -89,6 +91,7 @@ function ReportsPage() {
     }
   }, [])
 
+  // Vuelve a consultar ambos reportes y conserva el mensaje de error si falla la actualización.
   const refreshReports = async () => {
     try {
       setRefreshing(true)
@@ -111,6 +114,7 @@ function ReportsPage() {
     }
   }
 
+  // Traduce los estados de stock del backend a etiquetas visibles en español.
   const getStockStatusLabel = (status) => {
     switch (status) {
       case 'OUT_OF_STOCK':
@@ -124,6 +128,7 @@ function ReportsPage() {
     }
   }
 
+  // Asocia cada estado recibido con la clase visual usada en sus indicadores.
   const getStockStatusClass = (status) => {
     switch (status) {
       case 'OUT_OF_STOCK':
@@ -137,6 +142,7 @@ function ReportsPage() {
     }
   }
 
+  // Prepara los totales por estado para el gráfico circular de inventario.
   const inventoryStatusData = useMemo(() => {
     if (!inventoryReport) {
       return []
@@ -161,6 +167,7 @@ function ReportsPage() {
     ]
   }, [inventoryReport])
 
+  // Busca productos por código, nombre o categoría y aplica el filtro de estado.
   const filteredInventoryProducts = useMemo(() => {
     if (!inventoryReport) {
       return []
@@ -183,6 +190,7 @@ function ReportsPage() {
     })
   }, [inventoryReport, inventorySearch, inventoryStatusFilter])
 
+  // Selecciona los productos con mayor actividad para comparar entradas y salidas.
   const movementChartData = useMemo(() => {
     if (!movementReport) {
       return []
@@ -203,6 +211,7 @@ function ReportsPage() {
       }))
   }, [movementReport])
 
+  // Busca por código o nombre dentro del resumen de movimientos por producto.
   const filteredMovementProducts = useMemo(() => {
     if (!movementReport) {
       return []
@@ -219,6 +228,7 @@ function ReportsPage() {
     })
   }, [movementReport, productMovementSearch])
 
+  // Filtra el historial del reporte por datos del producto, observación y tipo de movimiento.
   const filteredMovementHistory = useMemo(() => {
     if (!movementReport) {
       return []
@@ -242,6 +252,7 @@ function ReportsPage() {
     })
   }, [movementReport, historySearch, historyTypeFilter])
 
+  // Formatea las fechas del reporte según la configuración regional de Colombia.
   const formatMovementDate = (date) => {
     return new Intl.DateTimeFormat('es-CO', {
       dateStyle: 'medium',

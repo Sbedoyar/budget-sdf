@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Expone las operaciones HTTP del catálogo de productos.
+ */
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
@@ -20,6 +23,12 @@ public class ProductController {
         this.productService = productService;
     }
 
+    /**
+     * Registra un producto con los datos validados del cuerpo.
+     *
+     * @param request datos del producto
+     * @return producto creado con estado HTTP 201
+     */
     @PostMapping
     public ResponseEntity<ProductResponse> createProduct(
             @Valid @RequestBody ProductRequest request) {
@@ -31,6 +40,11 @@ public class ProductController {
                 .body(response);
     }
 
+    /**
+     * Lista todos los productos del inventario.
+     *
+     * @return catálogo de productos
+     */
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAllProducts() {
 
@@ -39,6 +53,12 @@ public class ProductController {
         return ResponseEntity.ok(products);
     }
 
+    /**
+     * Consulta un producto por su identificador.
+     *
+     * @param id identificador del producto recibido en la ruta
+     * @return producto encontrado
+     */
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> findProductById(
             @PathVariable Long id) {
@@ -47,6 +67,13 @@ public class ProductController {
 
         return ResponseEntity.ok(product);
     }
+    /**
+     * Actualiza los datos de un producto existente.
+     *
+     * @param id identificador del producto recibido en la ruta
+     * @param request nuevos datos validados
+     * @return producto actualizado
+     */
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> updateProduct(
             @PathVariable Long id,
@@ -57,6 +84,12 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 
+    /**
+     * Elimina un producto que no tenga movimientos asociados.
+     *
+     * @param id identificador del producto recibido en la ruta
+     * @return mensaje de confirmación
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
