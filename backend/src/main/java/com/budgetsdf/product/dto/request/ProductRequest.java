@@ -6,6 +6,10 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Datos de entrada para crear o modificar la información de un producto.
+ * Las anotaciones de validación definen los campos obligatorios y el mínimo de stock permitido.
+ */
 @Getter
 @Setter
 public class ProductRequest {

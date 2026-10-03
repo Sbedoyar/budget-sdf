@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * Expone los endpoints de consulta de alertas de inventario.
+ */
 @RestController
 @RequestMapping("/api/alerts")
 public class AlertController {
@@ -18,6 +21,11 @@ public class AlertController {
         this.alertService = alertService;
     }
 
+    /**
+     * Devuelve las alertas de productos con stock bajo o agotado.
+     *
+     * @return respuesta HTTP con la lista de alertas
+     */
     @GetMapping("/low-stock")
     public ResponseEntity<List<LowStockAlertResponse>> getLowStockProducts() {
         return ResponseEntity.ok(alertService.getLowStockProducts());

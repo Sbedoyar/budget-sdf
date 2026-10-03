@@ -4,6 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Credenciales requeridas para iniciar sesión con una cuenta local.
+ */
 @Getter
 @Setter
 public class LoginRequest {

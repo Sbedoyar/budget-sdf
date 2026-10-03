@@ -16,6 +16,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Intercepta cada solicitud para autenticarla con el JWT del encabezado Authorization.
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
@@ -26,6 +29,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userRepository = userRepository;
     }
 
+    /**
+     * Valida el token Bearer y, si corresponde, registra la identidad en el contexto de seguridad.
+     *
+     * @param request solicitud HTTP entrante
+     * @param response respuesta HTTP asociada
+     * @param filterChain siguiente filtro de la cadena de Spring
+     * @throws ServletException si falla el procesamiento del filtro
+     * @throws IOException si ocurre un error de entrada o salida
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
@@ -36,12 +48,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String token = authorization.substring(7);
                 String username = jwtService.getUsername(token);
                 User user = userRepository.findByUsername(username).orElse(null);
+                // La autenticación se establece solo para un usuario existente y un token vigente.
                 if (user != null && jwtService.isValid(token)) {
                     var authentication = new UsernamePasswordAuthenticationToken(
                             username, null, List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             } catch (JwtException | IllegalArgumentException ignored) {
+                // Un token mal formado o inválido no debe dejar una identidad autenticada.
                 SecurityContextHolder.clearContext();
             }
         }

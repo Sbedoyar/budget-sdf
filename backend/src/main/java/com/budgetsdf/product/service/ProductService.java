@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Gestiona el catálogo de productos y sus reglas de integridad.
+ */
 @Service
 public class ProductService {
 
@@ -27,6 +30,13 @@ public class ProductService {
         this.movementRepository = movementRepository;
     }
 
+    /**
+     * Crea un producto con stock inicial en cero y una categoría existente.
+     *
+     * @param request datos validados del producto
+     * @return producto creado en formato de respuesta
+     * @throws BusinessException si el código ya existe o la categoría no existe
+     */
     public ProductResponse createProduct(ProductRequest request) {
 
         String code = request.getCode().trim();
@@ -47,20 +57,37 @@ public class ProductService {
         product.setUnitOfMeasure(unitOfMeasure);
         product.setMinimumStock(request.getMinimumStock());
         product.setCurrentStock(0);
+        product.setActive(true);
 
         Product savedProduct = productRepository.save(product);
 
         return convertToResponse(savedProduct);
     }
 
-    public List<ProductResponse> getAllProducts() {
+    /**
+     * Recupera los productos del catálogo.
+     *
+     * @param includeInactive indica si también deben incluirse productos inactivos
+     * @return productos convertidos al formato de respuesta
+     */
+    public List<ProductResponse> getAllProducts(boolean includeInactive) {
 
-        return productRepository.findAll()
-                .stream()
+        List<Product> products = includeInactive
+                ? productRepository.findAll()
+                : productRepository.findByActiveTrue();
+
+        return products.stream()
                 .map(this::convertToResponse)
                 .toList();
     }
 
+    /**
+     * Busca un producto por su identificador, incluso si está inactivo.
+     *
+     * @param id identificador del producto
+     * @return producto encontrado
+     * @throws BusinessException si el producto no existe
+     */
     public ProductResponse findById(Long id) {
 
         Product product = productRepository.findById(id)
@@ -69,6 +96,14 @@ public class ProductService {
         return convertToResponse(product);
     }
 
+    /**
+     * Actualiza los datos descriptivos y la categoría de un producto existente.
+     *
+     * @param id identificador del producto
+     * @param request nuevos datos validados del producto
+     * @return producto actualizado
+     * @throws BusinessException si el producto, el código único o la categoría no son válidos
+     */
     public ProductResponse updateProduct(Long id, ProductRequest request) {
 
         Product product = productRepository.findById(id)
@@ -94,18 +129,55 @@ public class ProductService {
         return convertToResponse(updatedProduct);
     }
 
-    public void deleteProduct(Long id) {
+    /**
+     * Elimina físicamente un producto sin historial o lo desactiva cuando
+     * existen movimientos asociados que deben conservarse.
+     *
+     * @param id identificador del producto
+     * @return mensaje que indica si el producto fue eliminado o desactivado
+     * @throws BusinessException si el producto no existe o ya está inactivo
+     */
+    public String deleteProduct(Long id) {
 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Producto no encontrado"));
 
+        if (Boolean.FALSE.equals(product.getActive())) {
+            throw new BusinessException("El producto ya está inactivo");
+        }
+
         if (movementRepository.existsByProductId(id)) {
-            throw new BusinessException(
-                    "No se puede eliminar el producto porque tiene movimientos asociados"
-            );
+            product.setActive(false);
+            productRepository.save(product);
+            return "Producto desactivado correctamente. Su historial de movimientos se conserva";
         }
 
         productRepository.delete(product);
+        return "Producto eliminado correctamente";
+    }
+
+    /**
+     * Reactiva un producto previamente desactivado para permitir nuevamente
+     * su uso en operaciones de inventario.
+     *
+     * @param id identificador del producto
+     * @return producto reactivado
+     * @throws BusinessException si el producto no existe o ya está activo
+     */
+    public ProductResponse reactivateProduct(Long id) {
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Producto no encontrado"));
+
+        if (Boolean.TRUE.equals(product.getActive())) {
+            throw new BusinessException("El producto ya está activo");
+        }
+
+        product.setActive(true);
+
+        Product reactivatedProduct = productRepository.save(product);
+
+        return convertToResponse(reactivatedProduct);
     }
 
     private Category findCategory(Long id) {
@@ -126,6 +198,7 @@ public class ProductService {
         response.setUnitOfMeasure(product.getUnitOfMeasure());
         response.setCurrentStock(product.getCurrentStock());
         response.setMinimumStock(product.getMinimumStock());
+        response.setActive(product.getActive());
 
         return response;
     }

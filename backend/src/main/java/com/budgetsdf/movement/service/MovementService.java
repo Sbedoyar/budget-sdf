@@ -15,6 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Registra movimientos de inventario y mantiene sincronizado el stock de cada producto.
+ */
 @Service
 public class MovementService {
 
@@ -29,11 +32,24 @@ public class MovementService {
         this.productRepository = productRepository;
     }
 
+    /**
+     * Registra una entrada o salida y actualiza el stock dentro de la misma transacción.
+     *
+     * @param request producto, tipo, cantidad y observación del movimiento
+     * @return movimiento guardado con el stock resultante
+     * @throws BusinessException si el producto no existe o una salida supera el stock disponible
+     */
     @Transactional
     public MovementResponse recordMovement(MovementRequest request) {
 
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new BusinessException("Producto no encontrado"));
+
+        if (Boolean.FALSE.equals(product.getActive())) {
+            throw new BusinessException(
+                    "El producto está inactivo y no permite registrar movimientos"
+            );
+        }
 
         if (request.getType() == MovementType.ENTRADA) {
 
@@ -43,6 +59,7 @@ public class MovementService {
 
         } else if (request.getType() == MovementType.SALIDA) {
 
+            // Evita que una salida deje el inventario con una cantidad negativa.
             if (product.getCurrentStock() < request.getQuantity()) {
                 throw new BusinessException("Stock insuficiente");
             }
@@ -79,6 +96,11 @@ public class MovementService {
 
         return response;
     }
+    /**
+     * Recupera todos los movimientos del más reciente al más antiguo.
+     *
+     * @return movimientos convertidos al formato de respuesta
+     */
     public List<MovementResponse> getAllMovements() {
 
         return movementRepository.findAllByOrderByDateDesc()
@@ -87,6 +109,13 @@ public class MovementService {
                 .toList();
     }
 
+    /**
+     * Recupera el historial de movimientos de un producto existente.
+     *
+     * @param productId identificador del producto
+     * @return movimientos del producto ordenados por fecha descendente
+     * @throws BusinessException si el producto no existe
+     */
     public List<MovementResponse> getMovementsByProduct(Long productId) {
 
         if (!productRepository.existsById(productId)) {

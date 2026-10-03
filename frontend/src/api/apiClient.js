@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+// Cliente común: toma la URL base de configuración y centraliza encabezados y errores de sesión.
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: {
@@ -7,6 +8,7 @@ const apiClient = axios.create({
   },
 })
 
+// Adjunta el JWT almacenado a cada solicitud autenticada.
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
 
@@ -17,6 +19,7 @@ apiClient.interceptors.request.use((config) => {
   return config
 })
 
+// Si el backend rechaza la autenticación, limpia la sesión y devuelve al usuario al login.
 apiClient.interceptors.response.use(
   (response) => response,
 

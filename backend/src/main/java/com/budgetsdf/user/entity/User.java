@@ -5,12 +5,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Entidad persistente de usuario, con credenciales locales y datos opcionales de Google SSO.
+ */
 @Entity
 @Table(name = "usuarios")
 @Getter
 @Setter
 @NoArgsConstructor
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,4 +28,10 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "rol", nullable = false)
     private UserRole role;
+
+    @Column(unique = true)
+    private String email;
+
+    @Column(name = "google_subject", unique = true)
+    private String googleSubject;
 }

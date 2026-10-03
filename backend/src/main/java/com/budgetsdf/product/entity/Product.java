@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Entidad que representa un producto y sus niveles actuales y mínimos de inventario.
+ */
 @Entity
 @Table(name = "productos")
 @Getter
@@ -35,4 +38,7 @@ public class Product {
 
     @Column(name = "stock_minimo", nullable = false)
     private Integer minimumStock = 0;
+
+    @Column(name = "activo", nullable = false)
+    private Boolean active = true;
 }

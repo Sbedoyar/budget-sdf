@@ -20,49 +20,92 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Configura autenticación sin sesión, autorización HTTP, manejo de errores y CORS.
+ */
 @Configuration
 public class SecurityConfig {
 
+        /** Proporciona BCrypt para codificar y comparar contraseñas. */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+        /**
+         * Define las reglas de seguridad de la API y agrega el filtro JWT antes de la autenticación estándar.
+         *
+         * @param http configuración HTTP de Spring Security
+         * @param jwtFilter filtro que autentica solicitudes con tokens Bearer
+         * @return cadena de filtros configurada para la aplicación
+         * @throws Exception si Spring no puede construir la cadena de seguridad
+         */
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            JwtAuthenticationFilter jwtFilter) throws Exception {
+            JwtAuthenticationFilter jwtFilter
+    ) throws Exception {
 
         return http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> {})
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
                 )
                 .exceptionHandling(exception -> exception
 
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                        .authenticationEntryPoint(
+                                (request, response, authException) -> {
+                                    response.setStatus(
+                                            HttpServletResponse.SC_UNAUTHORIZED
+                                    );
 
-                            response.getWriter().write(
-                                    "{\"status\":401,\"message\":\"No autenticado o token inválido\"}"
-                            );
-                        })
+                                    response.setContentType(
+                                            MediaType.APPLICATION_JSON_VALUE
+                                    );
 
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                                    response.setCharacterEncoding(
+                                            StandardCharsets.UTF_8.name()
+                                    );
 
-                            response.getWriter().write(
-                                    "{\"status\":403,\"message\":\"Acceso denegado\"}"
-                            );
-                        })
+                                    response.getWriter().write(
+                                            "{\"status\":401,\"message\":\"No autenticado o token inválido\"}"
+                                    );
+                                }
+                        )
+
+                        .accessDeniedHandler(
+                                (request, response, accessDeniedException) -> {
+                                    response.setStatus(
+                                            HttpServletResponse.SC_FORBIDDEN
+                                    );
+
+                                    response.setContentType(
+                                            MediaType.APPLICATION_JSON_VALUE
+                                    );
+
+                                    response.setCharacterEncoding(
+                                            StandardCharsets.UTF_8.name()
+                                    );
+
+                                    response.getWriter().write(
+                                            "{\"status\":403,\"message\":\"Acceso denegado\"}"
+                                    );
+                                }
+                        )
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+
+                        // El acceso inicia sin token solo por los endpoints de autenticación.
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/auth/login",
+                                "/api/auth/google"
+                        ).permitAll()
+
+                        // Los recursos funcionales requieren una identidad establecida por el filtro JWT.
                         .requestMatchers(
                                 "/api/products/**",
                                 "/api/movements/**",
@@ -70,36 +113,65 @@ public class SecurityConfig {
                                 "/api/reports/**",
                                 "/api/categories/**"
                         ).authenticated()
+
+                        // Cualquier ruta que no esté declarada explícitamente queda bloqueada.
                         .anyRequest().denyAll()
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(
+                        jwtFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                )
                 .build();
     }
 
+        /**
+         * Permite los orígenes, métodos y encabezados definidos en la configuración de la aplicación.
+         *
+         * @param allowedOrigins lista de orígenes autorizados separada por comas
+         * @return origen de configuración CORS aplicado a todas las rutas
+         */
     @Bean
     public CorsConfigurationSource corsConfigurationSource(
-            @Value("${app.cors.allowed-origins}") String allowedOrigins) {
+            @Value("${app.cors.allowed-origins}")
+            String allowedOrigins
+    ) {
 
-        CorsConfiguration configuration = new CorsConfiguration();
+        CorsConfiguration configuration =
+                new CorsConfiguration();
 
         configuration.setAllowedOrigins(
-                Arrays.stream(allowedOrigins.split(","))
+                Arrays.stream(
+                        allowedOrigins.split(",")
+                )
                         .map(String::trim)
                         .toList()
         );
 
         configuration.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                List.of(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "PATCH",
+                        "DELETE",
+                        "OPTIONS"
+                )
         );
 
         configuration.setAllowedHeaders(
-                List.of("Authorization", "Content-Type")
+                List.of(
+                        "Authorization",
+                        "Content-Type"
+                )
         );
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
 
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration(
+                "/**",
+                configuration
+        );
 
         return source;
     }

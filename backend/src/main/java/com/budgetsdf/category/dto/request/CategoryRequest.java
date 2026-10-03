@@ -5,6 +5,9 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Datos de entrada para crear o actualizar una categoría.
+ */
 @Getter
 @Setter
 public class CategoryRequest {

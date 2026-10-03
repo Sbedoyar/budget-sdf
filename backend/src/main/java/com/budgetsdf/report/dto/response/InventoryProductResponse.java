@@ -3,6 +3,9 @@ package com.budgetsdf.report.dto.response;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * Detalle de un producto incluido en el reporte de inventario.
+ */
 @Getter
 @AllArgsConstructor
 public class InventoryProductResponse {
