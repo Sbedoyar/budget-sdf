@@ -45,6 +45,12 @@ public class MovementService {
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new BusinessException("Producto no encontrado"));
 
+        if (Boolean.FALSE.equals(product.getActive())) {
+            throw new BusinessException(
+                    "El producto está inactivo y no permite registrar movimientos"
+            );
+        }
+
         if (request.getType() == MovementType.ENTRADA) {
 
             product.setCurrentStock(

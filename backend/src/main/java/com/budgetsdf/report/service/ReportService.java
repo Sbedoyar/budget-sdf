@@ -41,7 +41,7 @@ public class ReportService {
      */
     public InventoryReportResponse generateInventoryReport() {
 
-        List<Product> products = productRepository.findAll();
+        List<Product> products = productRepository.findByActiveTrue();
 
         List<InventoryProductResponse> productDetails = products.stream()
                 .map(this::createProductDetail)

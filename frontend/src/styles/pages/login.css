@@ -500,6 +500,30 @@
   }
 }
 
+.login-brand {
+  display: flex;
+  align-items: center;
+}
+
+.login-brand-logo {
+  width: 160px;
+  max-width: 100%;
+  height: auto;
+
+  display: block;
+
+  object-fit: contain;
+}
+
+.login-mobile-brand-logo {
+  width: 150px;
+  height: auto;
+
+  display: block;
+
+  object-fit: contain;
+}
+
 
 /* =========================================================
    AJUSTE DE ALTURA - LOGIN COMPLETO EN PANTALLA

@@ -18,4 +18,5 @@ public class ProductResponse {
     private String unitOfMeasure;
     private Integer currentStock;
     private Integer minimumStock;
+    private Boolean active;
 }

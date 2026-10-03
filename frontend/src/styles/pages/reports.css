@@ -1830,6 +1830,24 @@
   font-size: 8px;
 }
 
+
+.report-product-inactive-label {
+  display: inline-flex;
+
+  margin-left: 6px;
+  padding: 2px 5px;
+
+  border: 1px solid #d6dee3;
+  border-radius: 999px;
+
+  color: #64748b;
+
+  background: #f1f5f9;
+
+  font-size: 7px;
+  font-weight: 750;
+}
+
 .report-product-selector-divider {
   height: 1px;
 

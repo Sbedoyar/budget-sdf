@@ -184,3 +184,36 @@ a {
   color: var(--budget-950);
   background: var(--budget-100);
 }
+
+/* =========================================================
+   MICROINTERACCIONES DE CAMPOS
+   Mejora visual de ejemplos y placeholders en toda la app.
+   ========================================================= */
+
+input,
+textarea {
+  caret-color: var(--budget-600);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8da0b6;
+  opacity: 1;
+
+  font-weight: 450;
+
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+input:hover::placeholder,
+textarea:hover::placeholder {
+  color: #7f93aa;
+}
+
+input:focus::placeholder,
+textarea:focus::placeholder {
+  color: #a2b0c0;
+  opacity: 0.78;
+}

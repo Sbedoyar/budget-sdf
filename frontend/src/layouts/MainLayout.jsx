@@ -12,6 +12,7 @@ import {
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { logout } from '../services/authService'
 import '../styles/layout.css'
+import logoBudgetSdf from '../assets/logo-budget-sdf.png'
 
 // Proporciona navegación común, datos de sesión visibles y el espacio para la página activa.
 function MainLayout() {
@@ -63,14 +64,11 @@ function MainLayout() {
     <div className="app-shell">
       <aside className="app-sidebar">
         <div className="sidebar-brand">
-          <div className="brand-icon">
-            <PackageCheck size={30} strokeWidth={2.2} />
-          </div>
-
-          <div>
-            <h1>Budget SDF</h1>
-            <span>Tienda El Paraíso</span>
-          </div>
+          <img
+            src={logoBudgetSdf}
+            alt="Budget SDF"
+            className="sidebar-brand-logo"
+          />
         </div>
 
         <nav className="sidebar-navigation">

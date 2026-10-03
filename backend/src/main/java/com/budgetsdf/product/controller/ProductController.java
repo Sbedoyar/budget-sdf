@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Map;
 
@@ -41,14 +42,17 @@ public class ProductController {
     }
 
     /**
-     * Lista todos los productos del inventario.
+     * Lista los productos activos y, opcionalmente, también los inactivos.
      *
+     * @param includeInactive indica si deben incluirse productos inactivos
      * @return catálogo de productos
      */
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getAllProducts() {
+    public ResponseEntity<List<ProductResponse>> getAllProducts(
+            @RequestParam(defaultValue = "false") boolean includeInactive) {
 
-        List<ProductResponse> products = productService.getAllProducts();
+        List<ProductResponse> products =
+                productService.getAllProducts(includeInactive);
 
         return ResponseEntity.ok(products);
     }
@@ -67,6 +71,7 @@ public class ProductController {
 
         return ResponseEntity.ok(product);
     }
+
     /**
      * Actualiza los datos de un producto existente.
      *
@@ -85,17 +90,35 @@ public class ProductController {
     }
 
     /**
-     * Elimina un producto que no tenga movimientos asociados.
+     * Elimina físicamente un producto sin historial o lo desactiva cuando
+     * tiene movimientos asociados.
      *
      * @param id identificador del producto recibido en la ruta
      * @return mensaje de confirmación
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteProduct(@PathVariable Long id) {
-        productService.deleteProduct(id);
+    public ResponseEntity<Map<String, String>> deleteProduct(
+            @PathVariable Long id) {
+
+        String message = productService.deleteProduct(id);
 
         return ResponseEntity.ok(
-                Map.of("message", "Producto eliminado correctamente")
+                Map.of("message", message)
         );
+    }
+
+    /**
+     * Reactiva un producto previamente desactivado.
+     *
+     * @param id identificador del producto recibido en la ruta
+     * @return producto reactivado
+     */
+    @PatchMapping("/{id}/reactivate")
+    public ResponseEntity<ProductResponse> reactivateProduct(
+            @PathVariable Long id) {
+
+        ProductResponse product = productService.reactivateProduct(id);
+
+        return ResponseEntity.ok(product);
     }
 }

@@ -20,6 +20,7 @@ import {
   createMovement,
   getMovements,
 } from '../services/movementService'
+import AppSelect from '../components/AppSelect'
 import { getProducts } from '../services/productService'
 import '../styles/pages/movements.css'
 
@@ -27,6 +28,7 @@ import '../styles/pages/movements.css'
 function MovementsPage() {
   const [movements, setMovements] = useState([])
   const [products, setProducts] = useState([])
+  const [historyProducts, setHistoryProducts] = useState([])
 
   const [productId, setProductId] = useState('')
   const [type, setType] = useState('')
@@ -50,14 +52,20 @@ function MovementsPage() {
 
     const fetchInitialData = async () => {
       try {
-        const [movementsData, productsData] = await Promise.all([
+        const [
+          movementsData,
+          productsData,
+          historyProductsData,
+        ] = await Promise.all([
           getMovements(),
           getProducts(),
+          getProducts(true),
         ])
 
         if (!cancelled) {
           setMovements(movementsData)
           setProducts(productsData)
+          setHistoryProducts(historyProductsData)
         }
       } catch (error) {
         if (!cancelled) {
@@ -156,13 +164,19 @@ function MovementsPage() {
 
   // Sincroniza movimientos y productos luego de registrar una operación.
   const refreshData = async () => {
-    const [movementsData, productsData] = await Promise.all([
+    const [
+      movementsData,
+      productsData,
+      historyProductsData,
+    ] = await Promise.all([
       getMovements(),
       getProducts(),
+      getProducts(true),
     ])
 
     setMovements(movementsData)
     setProducts(productsData)
+    setHistoryProducts(historyProductsData)
   }
 
   const clearFeedback = () => {
@@ -404,7 +418,7 @@ function MovementsPage() {
                 Producto
               </label>
 
-              <select
+              <AppSelect
                 ref={productSelectRef}
                 id="product"
                 className="form-input movements-form-input"
@@ -424,7 +438,7 @@ function MovementsPage() {
                     {product.code} - {product.name}
                   </option>
                 ))}
-              </select>
+              </AppSelect>
             </div>
 
             <div className="form-group">
@@ -432,7 +446,7 @@ function MovementsPage() {
                 Tipo de movimiento
               </label>
 
-              <select
+              <AppSelect
                 id="type"
                 className="form-input movements-form-input"
                 value={type}
@@ -442,7 +456,7 @@ function MovementsPage() {
                 <option value="">Selecciona un tipo</option>
                 <option value="ENTRADA">Entrada</option>
                 <option value="SALIDA">Salida</option>
-              </select>
+              </AppSelect>
             </div>
 
             <div className="form-group">
@@ -587,7 +601,7 @@ function MovementsPage() {
           <div className="movements-filter">
             <Filter size={16} />
 
-            <select
+            <AppSelect
               value={typeFilter}
               aria-label="Filtrar por tipo"
               onChange={(event) =>
@@ -597,13 +611,13 @@ function MovementsPage() {
               <option value="">Todos los tipos</option>
               <option value="ENTRADA">Entradas</option>
               <option value="SALIDA">Salidas</option>
-            </select>
+            </AppSelect>
           </div>
 
           <div className="movements-filter">
             <Package size={16} />
 
-            <select
+            <AppSelect
               value={productFilter}
               aria-label="Filtrar por producto"
               onChange={(event) =>
@@ -612,15 +626,16 @@ function MovementsPage() {
             >
               <option value="">Todos los productos</option>
 
-              {products.map((product) => (
+              {historyProducts.map((product) => (
                 <option
                   key={product.id}
                   value={product.id}
                 >
                   {product.code} - {product.name}
+                  {product.active === false ? ' (Inactivo)' : ''}
                 </option>
               ))}
-            </select>
+            </AppSelect>
           </div>
 
           {hasActiveFilters && (

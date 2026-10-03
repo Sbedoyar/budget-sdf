@@ -12,6 +12,7 @@ import {
   SlidersHorizontal,
   X,
 } from 'lucide-react'
+import AppSelect from '../components/AppSelect'
 import { getLowStockAlerts } from '../services/alertService'
 import '../styles/pages/alerts.css'
 
@@ -262,7 +263,7 @@ function AlertsPage() {
           <div className="alerts-filter">
             <SlidersHorizontal size={16} />
 
-            <select
+            <AppSelect
               value={statusFilter}
               aria-label="Filtrar por estado"
               onChange={(event) =>
@@ -272,13 +273,13 @@ function AlertsPage() {
               <option value="">Todos los estados</option>
               <option value="LOW_STOCK">Bajo stock</option>
               <option value="OUT_OF_STOCK">Sin stock</option>
-            </select>
+            </AppSelect>
           </div>
 
           <div className="alerts-filter">
             <PackageSearch size={16} />
 
-            <select
+            <AppSelect
               value={sortOrder}
               aria-label="Ordenar alertas"
               onChange={(event) =>
@@ -288,7 +289,7 @@ function AlertsPage() {
               <option value="critical">Más críticas primero</option>
               <option value="stock">Menor stock primero</option>
               <option value="name">Nombre A-Z</option>
-            </select>
+            </AppSelect>
           </div>
 
           {hasActiveFilters && (

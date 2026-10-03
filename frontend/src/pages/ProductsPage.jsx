@@ -10,16 +10,19 @@ import {
   PackageX,
   Pencil,
   Plus,
+  RotateCcw,
   Save,
   Search,
   Trash2,
   X,
 } from 'lucide-react'
+import AppSelect from '../components/AppSelect'
 import { getCategories } from '../services/categoryService'
 import {
   createProduct,
   deleteProduct,
   getProducts,
+  reactivateProduct,
   updateProduct,
 } from '../services/productService'
 import '../styles/pages/products.css'
@@ -41,12 +44,14 @@ function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [stockFilter, setStockFilter] = useState('')
+  const [activityFilter, setActivityFilter] = useState('ACTIVE')
 
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [reactivatingId, setReactivatingId] = useState(null)
 
   const codeInputRef = useRef(null)
 
@@ -57,7 +62,7 @@ function ProductsPage() {
     const fetchInitialData = async () => {
       try {
         const [productsData, categoriesData] = await Promise.all([
-          getProducts(),
+          getProducts(true),
           getCategories(),
         ])
 
@@ -99,9 +104,17 @@ function ProductsPage() {
     return 'NORMAL'
   }
 
-  // Calcula los totales de unidades y productos por estado a partir del catálogo cargado.
+  // Mantiene separados los productos activos de los registros históricos inactivos.
+  const activeProducts = useMemo(
+    () => products.filter((product) => product.active !== false),
+    [products],
+  )
+
+  const inactiveProductsCount = products.length - activeProducts.length
+
+  // Calcula los totales de inventario únicamente con productos activos.
   const stockSummary = useMemo(() => {
-    return products.reduce(
+    return activeProducts.reduce(
       (summary, product) => {
         const status = getStockStatus(product)
 
@@ -124,9 +137,9 @@ function ProductsPage() {
         outOfStock: 0,
       },
     )
-  }, [products])
+  }, [activeProducts])
 
-  // Combina la búsqueda textual con los filtros seleccionados de categoría y stock.
+  // Combina la búsqueda textual con los filtros seleccionados de categoría, stock y actividad.
   const filteredProducts = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
 
@@ -144,12 +157,28 @@ function ProductsPage() {
       const matchesStock =
         !stockFilter || getStockStatus(product) === stockFilter
 
-      return matchesSearch && matchesCategory && matchesStock
+      const matchesActivity =
+        activityFilter === 'ALL' ||
+        (activityFilter === 'ACTIVE' && product.active !== false) ||
+        (activityFilter === 'INACTIVE' && product.active === false)
+
+      return (
+        matchesSearch &&
+        matchesCategory &&
+        matchesStock &&
+        matchesActivity
+      )
     })
-  }, [products, searchTerm, categoryFilter, stockFilter])
+  }, [
+    products,
+    searchTerm,
+    categoryFilter,
+    stockFilter,
+    activityFilter,
+  ])
 
   const refreshProducts = async () => {
-    const data = await getProducts()
+    const data = await getProducts(true)
     setProducts(data)
   }
 
@@ -292,15 +321,40 @@ function ProductsPage() {
     }
   }
 
+  // Reactiva un producto desactivado y vuelve a sincronizar el catálogo.
+  const handleReactivate = async (product) => {
+    clearFeedback()
+
+    try {
+      setReactivatingId(product.id)
+
+      await reactivateProduct(product.id)
+
+      setMessage(`${product.name} fue reactivado correctamente`)
+      await refreshProducts()
+    } catch (error) {
+      setError(
+        error.response?.data?.message ||
+          'No fue posible reactivar el producto',
+      )
+    } finally {
+      setReactivatingId(null)
+    }
+  }
+
   // Restablece simultáneamente la búsqueda y los filtros activos.
   const clearFilters = () => {
     setSearchTerm('')
     setCategoryFilter('')
     setStockFilter('')
+    setActivityFilter('ACTIVE')
   }
 
   const hasActiveFilters =
-    searchTerm || categoryFilter || stockFilter
+    searchTerm ||
+    categoryFilter ||
+    stockFilter ||
+    activityFilter !== 'ACTIVE'
 
   const getStatusLabel = (status) => {
     if (status === 'OUT_OF_STOCK') {
@@ -347,9 +401,13 @@ function ProductsPage() {
           </div>
 
           <div>
-            <span>Productos</span>
-            <strong>{products.length}</strong>
-            <small>Registrados</small>
+            <span>Productos activos</span>
+            <strong>{activeProducts.length}</strong>
+            <small>
+              {inactiveProductsCount > 0
+                ? `${inactiveProductsCount} inactivos`
+                : 'Disponibles'}
+            </small>
           </div>
         </article>
 
@@ -473,7 +531,7 @@ function ProductsPage() {
                 Categoría
               </label>
 
-              <select
+              <AppSelect
                 id="category"
                 className="form-input products-form-input"
                 value={categoryId}
@@ -490,7 +548,7 @@ function ProductsPage() {
                     {category.name}
                   </option>
                 ))}
-              </select>
+              </AppSelect>
             </div>
 
             <div className="form-group">
@@ -580,13 +638,13 @@ function ProductsPage() {
           <div>
             <h3>Inventario de productos</h3>
             <p>
-              Consulta el stock, filtra los productos y administra sus datos.
+              Consulta activos e inactivos, filtra el catálogo y administra sus datos.
             </p>
           </div>
 
           <span className="products-count">
-            {products.length}{' '}
-            {products.length === 1 ? 'producto' : 'productos'}
+            {activeProducts.length}{' '}
+            {activeProducts.length === 1 ? 'activo' : 'activos'}
           </span>
         </div>
 
@@ -608,7 +666,7 @@ function ProductsPage() {
           <div className="products-filter">
             <Filter size={16} />
 
-            <select
+            <AppSelect
               value={categoryFilter}
               aria-label="Filtrar por categoría"
               onChange={(event) =>
@@ -625,13 +683,13 @@ function ProductsPage() {
                   {category.name}
                 </option>
               ))}
-            </select>
+            </AppSelect>
           </div>
 
           <div className="products-filter">
             <PackageCheck size={16} />
 
-            <select
+            <AppSelect
               value={stockFilter}
               aria-label="Filtrar por estado de stock"
               onChange={(event) =>
@@ -642,7 +700,23 @@ function ProductsPage() {
               <option value="NORMAL">Normal</option>
               <option value="LOW_STOCK">Bajo stock</option>
               <option value="OUT_OF_STOCK">Sin stock</option>
-            </select>
+            </AppSelect>
+          </div>
+
+          <div className="products-filter">
+            <RotateCcw size={16} />
+
+            <AppSelect
+              value={activityFilter}
+              aria-label="Filtrar por estado del producto"
+              onChange={(event) =>
+                setActivityFilter(event.target.value)
+              }
+            >
+              <option value="ACTIVE">Productos activos</option>
+              <option value="INACTIVE">Productos inactivos</option>
+              <option value="ALL">Activos e inactivos</option>
+            </AppSelect>
           </div>
 
           {hasActiveFilters && (
@@ -709,7 +783,14 @@ function ProductsPage() {
                   const status = getStockStatus(product)
 
                   return (
-                    <tr key={product.id}>
+                    <tr
+                      key={product.id}
+                      className={
+                        product.active === false
+                          ? 'product-row-inactive'
+                          : ''
+                      }
+                    >
                       <td>
                         <div className="product-name-cell">
                           <div className="product-row-icon">
@@ -748,50 +829,77 @@ function ProductsPage() {
                       <td>{product.minimumStock}</td>
 
                       <td>
-                        <span
-                          className={`product-status-badge product-status-${status.toLowerCase()}`}
-                        >
-                          {status === 'NORMAL' && (
-                            <CheckCircle2 size={13} />
-                          )}
+                        {product.active === false ? (
+                          <span className="product-status-badge product-status-inactive">
+                            <CircleAlert size={13} />
+                            Inactivo
+                          </span>
+                        ) : (
+                          <span
+                            className={`product-status-badge product-status-${status.toLowerCase()}`}
+                          >
+                            {status === 'NORMAL' && (
+                              <CheckCircle2 size={13} />
+                            )}
 
-                          {status === 'LOW_STOCK' && (
-                            <AlertTriangle size={13} />
-                          )}
+                            {status === 'LOW_STOCK' && (
+                              <AlertTriangle size={13} />
+                            )}
 
-                          {status === 'OUT_OF_STOCK' && (
-                            <PackageX size={13} />
-                          )}
+                            {status === 'OUT_OF_STOCK' && (
+                              <PackageX size={13} />
+                            )}
 
-                          {getStatusLabel(status)}
-                        </span>
+                            {getStatusLabel(status)}
+                          </span>
+                        )}
                       </td>
 
                       <td>
                         <div className="product-actions">
-                          <button
-                            type="button"
-                            className="product-action-button product-edit-button"
-                            onClick={() => handleEdit(product)}
-                            aria-label={`Editar ${product.name}`}
-                            title="Editar producto"
-                          >
-                            <Pencil size={16} />
-                            <span>Editar</span>
-                          </button>
+                          {product.active === false ? (
+                            <button
+                              type="button"
+                              className="product-action-button product-reactivate-button"
+                              onClick={() => handleReactivate(product)}
+                              disabled={reactivatingId === product.id}
+                              aria-label={`Reactivar ${product.name}`}
+                              title="Reactivar producto"
+                            >
+                              <RotateCcw size={16} />
+                              <span>
+                                {reactivatingId === product.id
+                                  ? 'Reactivando...'
+                                  : 'Reactivar'}
+                              </span>
+                            </button>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                className="product-action-button product-edit-button"
+                                onClick={() => handleEdit(product)}
+                                aria-label={`Editar ${product.name}`}
+                                title="Editar producto"
+                              >
+                                <Pencil size={16} />
+                                <span>Editar</span>
+                              </button>
 
-                          <button
-                            type="button"
-                            className="product-action-button product-delete-button"
-                            onClick={() =>
-                              handleDeleteRequest(product)
-                            }
-                            aria-label={`Eliminar ${product.name}`}
-                            title="Eliminar producto"
-                          >
-                            <Trash2 size={16} />
-                            <span>Eliminar</span>
-                          </button>
+                              <button
+                                type="button"
+                                className="product-action-button product-delete-button"
+                                onClick={() =>
+                                  handleDeleteRequest(product)
+                                }
+                                aria-label={`Retirar ${product.name}`}
+                                title="Retirar producto"
+                              >
+                                <Trash2 size={16} />
+                                <span>Retirar</span>
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -819,17 +927,18 @@ function ProductsPage() {
             </div>
 
             <h3 id="delete-product-title">
-              Eliminar producto
+              Retirar producto
             </h3>
 
             <p>
-              ¿Seguro que deseas eliminar{' '}
-              <strong>{productToDelete.name}</strong>?
+              ¿Deseas retirar{' '}
+              <strong>{productToDelete.name}</strong> del catálogo activo?
             </p>
 
             <span>
-              Los productos con movimientos registrados no pueden
-              eliminarse porque forman parte del historial del inventario.
+              Si tiene movimientos registrados, se desactivará para
+              conservar su historial y podrás reactivarlo después. Si no
+              tiene movimientos, se eliminará definitivamente.
             </span>
 
             <div className="product-modal-actions">
@@ -849,7 +958,7 @@ function ProductsPage() {
                 disabled={deleting}
               >
                 <Trash2 size={16} />
-                {deleting ? 'Eliminando...' : 'Eliminar'}
+                {deleting ? 'Procesando...' : 'Continuar'}
               </button>
             </div>
           </div>

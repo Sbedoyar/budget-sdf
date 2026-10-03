@@ -23,7 +23,7 @@ public class AlertService {
      * @return alertas con la identificación y los niveles de stock de cada producto
      */
     public List<LowStockAlertResponse> getLowStockProducts() {
-        return productRepository.findAll().stream()
+        return productRepository.findByActiveTrue().stream()
                 .filter(product -> product.getCurrentStock() <= product.getMinimumStock())
                 .map(product -> new LowStockAlertResponse(
                         product.getId(), product.getCode(), product.getName(),

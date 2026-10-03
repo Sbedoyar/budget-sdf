@@ -57,6 +57,7 @@ public class ProductService {
         product.setUnitOfMeasure(unitOfMeasure);
         product.setMinimumStock(request.getMinimumStock());
         product.setCurrentStock(0);
+        product.setActive(true);
 
         Product savedProduct = productRepository.save(product);
 
@@ -64,20 +65,24 @@ public class ProductService {
     }
 
     /**
-     * Recupera el catálogo completo de productos.
+     * Recupera los productos del catálogo.
      *
+     * @param includeInactive indica si también deben incluirse productos inactivos
      * @return productos convertidos al formato de respuesta
      */
-    public List<ProductResponse> getAllProducts() {
+    public List<ProductResponse> getAllProducts(boolean includeInactive) {
 
-        return productRepository.findAll()
-                .stream()
+        List<Product> products = includeInactive
+                ? productRepository.findAll()
+                : productRepository.findByActiveTrue();
+
+        return products.stream()
                 .map(this::convertToResponse)
                 .toList();
     }
 
     /**
-     * Busca un producto por su identificador.
+     * Busca un producto por su identificador, incluso si está inactivo.
      *
      * @param id identificador del producto
      * @return producto encontrado
@@ -125,24 +130,54 @@ public class ProductService {
     }
 
     /**
-     * Elimina un producto solo si no tiene movimientos de inventario registrados.
+     * Elimina físicamente un producto sin historial o lo desactiva cuando
+     * existen movimientos asociados que deben conservarse.
      *
      * @param id identificador del producto
-     * @throws BusinessException si el producto no existe o tiene movimientos asociados
+     * @return mensaje que indica si el producto fue eliminado o desactivado
+     * @throws BusinessException si el producto no existe o ya está inactivo
      */
-    public void deleteProduct(Long id) {
+    public String deleteProduct(Long id) {
 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Producto no encontrado"));
 
-        // El historial de movimientos depende del producto y no debe quedar sin referencia.
+        if (Boolean.FALSE.equals(product.getActive())) {
+            throw new BusinessException("El producto ya está inactivo");
+        }
+
         if (movementRepository.existsByProductId(id)) {
-            throw new BusinessException(
-                    "No se puede eliminar el producto porque tiene movimientos asociados"
-            );
+            product.setActive(false);
+            productRepository.save(product);
+            return "Producto desactivado correctamente. Su historial de movimientos se conserva";
         }
 
         productRepository.delete(product);
+        return "Producto eliminado correctamente";
+    }
+
+    /**
+     * Reactiva un producto previamente desactivado para permitir nuevamente
+     * su uso en operaciones de inventario.
+     *
+     * @param id identificador del producto
+     * @return producto reactivado
+     * @throws BusinessException si el producto no existe o ya está activo
+     */
+    public ProductResponse reactivateProduct(Long id) {
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Producto no encontrado"));
+
+        if (Boolean.TRUE.equals(product.getActive())) {
+            throw new BusinessException("El producto ya está activo");
+        }
+
+        product.setActive(true);
+
+        Product reactivatedProduct = productRepository.save(product);
+
+        return convertToResponse(reactivatedProduct);
     }
 
     private Category findCategory(Long id) {
@@ -163,6 +198,7 @@ public class ProductService {
         response.setUnitOfMeasure(product.getUnitOfMeasure());
         response.setCurrentStock(product.getCurrentStock());
         response.setMinimumStock(product.getMinimumStock());
+        response.setActive(product.getActive());
 
         return response;
     }

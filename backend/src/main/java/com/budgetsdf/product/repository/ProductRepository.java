@@ -3,6 +3,7 @@ package com.budgetsdf.product.repository;
 import com.budgetsdf.product.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -18,4 +19,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     /** Comprueba si una categoría tiene productos asociados. */
     boolean existsByCategoryId(Long categoryId);
+
+    /** Recupera únicamente los productos activos. */
+    List<Product> findByActiveTrue();
 }

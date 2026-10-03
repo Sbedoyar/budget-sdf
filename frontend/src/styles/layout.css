@@ -95,53 +95,6 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.brand-icon {
-  width: 48px;
-  height: 48px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  flex-shrink: 0;
-
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-
-  color: white;
-
-  background: linear-gradient(
-    135deg,
-    var(--budget-500),
-    var(--budget-700)
-  );
-
-  box-shadow:
-    0 8px 20px rgba(16, 185, 129, 0.22);
-}
-
-.sidebar-brand h1 {
-  margin: 0;
-
-  color: white;
-
-  font-size: 21px;
-  line-height: 1.1;
-  letter-spacing: -0.4px;
-}
-
-.sidebar-brand span {
-  display: block;
-
-  margin-top: 5px;
-
-  color: #a7f3d0;
-
-  font-size: 12px;
-  font-weight: 500;
-}
-
-
 /* =========================================================
    NAVEGACIÓN DEL SIDEBAR
    Opciones principales del sistema.
@@ -557,4 +510,23 @@
   .sidebar-navigation {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 8px 24px;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-brand-logo {
+  width: 120px;
+  max-width: 100%;
+  height: auto;
+
+  display: block;
+
+  object-fit: contain;
 }

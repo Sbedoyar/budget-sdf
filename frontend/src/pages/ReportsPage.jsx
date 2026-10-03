@@ -44,6 +44,8 @@ import {
   getInventoryReport,
   getMovementReport,
 } from "../services/reportService";
+import AppSelect from "../components/AppSelect";
+import { getProducts } from "../services/productService";
 
 import { exportReportsToExcel } from "../utils/reportExcelExporter";
 
@@ -101,6 +103,7 @@ function ReportsPage() {
   const [inventoryReport, setInventoryReport] = useState(null);
 
   const [movementReport, setMovementReport] = useState(null);
+  const [movementProductCatalog, setMovementProductCatalog] = useState([]);
 
   const [inventorySearch, setInventorySearch] = useState("");
 
@@ -140,16 +143,24 @@ function ReportsPage() {
 
     const fetchReports = async () => {
       try {
-        const [inventoryData, movementData] = await Promise.all([
+        const [
+          inventoryData,
+          movementData,
+          productCatalogData,
+        ] = await Promise.all([
           getInventoryReport(),
 
           getMovementReport(),
+
+          getProducts(true),
         ]);
 
         if (!cancelled) {
           setInventoryReport(inventoryData);
 
           setMovementReport(movementData);
+
+          setMovementProductCatalog(productCatalogData);
         }
       } catch (error) {
         if (!cancelled) {
@@ -212,13 +223,19 @@ function ReportsPage() {
       setRefreshing(true);
       setError("");
 
-      const [inventoryData, movementData] = await Promise.all([
+      const [
+        inventoryData,
+        movementData,
+        productCatalogData,
+      ] = await Promise.all([
         getInventoryReport(),
         getMovementReport(buildMovementRequestFilters(appliedMovementFilters)),
+        getProducts(true),
       ]);
 
       setInventoryReport(inventoryData);
       setMovementReport(movementData);
+      setMovementProductCatalog(productCatalogData);
     } catch (error) {
       setError(
         error.response?.data?.message ||
@@ -322,16 +339,19 @@ function ReportsPage() {
     });
   }, [inventoryReport, inventorySearch, inventoryStatusFilter]);
 
-  // Usa el inventario como catálogo para permitir filtrar por cualquier producto registrado.
+  // Usa el catálogo administrativo para conservar en los filtros los productos inactivos con historial.
   const movementProductOptions = useMemo(() => {
-    if (!inventoryReport) {
-      return [];
-    }
-
-    return [...inventoryReport.products].sort((a, b) =>
-      String(a.name).localeCompare(String(b.name), "es"),
-    );
-  }, [inventoryReport]);
+    return movementProductCatalog
+      .map((product) => ({
+        productId: product.id,
+        code: product.code,
+        name: product.name,
+        active: product.active !== false,
+      }))
+      .sort((a, b) =>
+        String(a.name).localeCompare(String(b.name), "es"),
+      );
+  }, [movementProductCatalog]);
 
   // Filtra las opciones visibles dentro del selector múltiple de productos.
   const filteredMovementProductOptions = useMemo(() => {
@@ -662,6 +682,7 @@ function ReportsPage() {
         await exportReportsToExcel({
           inventoryReport,
           movementReport,
+          productCatalog: movementProductCatalog,
           filters: appliedMovementFilters,
           mode: "filtered",
         });
@@ -676,6 +697,7 @@ function ReportsPage() {
       await exportReportsToExcel({
         inventoryReport: completeInventoryReport,
         movementReport: completeMovementReport,
+        productCatalog: movementProductCatalog,
         filters: EMPTY_MOVEMENT_FILTERS,
         mode: "full",
       });
@@ -1067,7 +1089,7 @@ function ReportsPage() {
               <div className="report-filter">
                 <Filter size={15} />
 
-                <select
+                <AppSelect
                   value={inventoryStatusFilter}
                   aria-label="Filtrar inventario por estado"
                   onChange={(event) =>
@@ -1081,7 +1103,7 @@ function ReportsPage() {
                   <option value="LOW_STOCK">Bajo stock</option>
 
                   <option value="OUT_OF_STOCK">Sin stock</option>
-                </select>
+                </AppSelect>
               </div>
 
               {hasInventoryFilters && (
@@ -1323,7 +1345,7 @@ function ReportsPage() {
                 <span>Tipo de movimiento</span>
                 <div className="report-select-input">
                   <ArrowDownToLine size={15} />
-                  <select
+                  <AppSelect
                     value={movementFilters.type}
                     onChange={(event) =>
                       setMovementFilters((current) => ({
@@ -1335,7 +1357,7 @@ function ReportsPage() {
                     <option value="">Todos los tipos</option>
                     <option value="ENTRADA">Entradas</option>
                     <option value="SALIDA">Salidas</option>
-                  </select>
+                  </AppSelect>
                 </div>
               </label>
 
@@ -1454,7 +1476,14 @@ function ReportsPage() {
 
                                 <span className="report-product-option-copy">
                                   <strong>{product.name}</strong>
-                                  <small>{product.code}</small>
+                                  <small>
+                                    {product.code}
+                                    {product.active === false && (
+                                      <span className="report-product-inactive-label">
+                                        Inactivo
+                                      </span>
+                                    )}
+                                  </small>
                                 </span>
                               </button>
                             );

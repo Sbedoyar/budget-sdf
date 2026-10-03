@@ -3,7 +3,6 @@ import { GoogleLogin } from '@react-oauth/google'
 import { useNavigate } from 'react-router-dom'
 import {
   BarChart3,
-  Boxes,
   CheckCircle2,
   CircleAlert,
   LockKeyhole,
@@ -16,6 +15,7 @@ import {
   loginWithGoogle,
 } from '../services/authService'
 import '../styles/pages/login.css'
+import logoBudgetSdf from '../assets/logo-budget-sdf.png'
 
 // Gestiona el acceso local y con Google; ambas opciones guardan la sesión y conducen al dashboard.
 function LoginPage() {
@@ -93,14 +93,11 @@ function LoginPage() {
       <section className="login-brand-panel">
         <div className="login-brand-content">
           <div className="login-brand">
-            <div className="login-brand-icon">
-              <Boxes size={27} />
-            </div>
-
-            <div>
-              <span>Budget SDF</span>
-              <small>Gestión inteligente de inventario</small>
-            </div>
+            <img
+              src={logoBudgetSdf}
+              alt="Budget SDF - Sistema de gestión de inventario"
+              className="login-brand-logo"
+            />
           </div>
 
           <div className="login-presentation">
@@ -170,11 +167,11 @@ function LoginPage() {
       <section className="login-access-panel">
         <div className="login-card">
           <div className="login-mobile-brand">
-            <div className="login-mobile-brand-icon">
-              <Boxes size={22} />
-            </div>
-
-            <strong>Budget SDF</strong>
+            <img
+              src={logoBudgetSdf}
+              alt="Budget SDF"
+              className="login-mobile-brand-logo"
+            />
           </div>
 
           <div className="login-header">

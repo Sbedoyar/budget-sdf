@@ -70,7 +70,13 @@ const getSelectedInventoryProducts = (inventoryReport, filters, mode) => {
   )
 }
 
-const getSelectedProductLabel = (inventoryReport, filters, mode) => {
+const getSelectedProductLabel = (
+  inventoryReport,
+  movementReport,
+  productCatalog,
+  filters,
+  mode,
+) => {
   if (
     mode !== 'filtered' ||
     !Array.isArray(filters?.productIds) ||
@@ -79,19 +85,63 @@ const getSelectedProductLabel = (inventoryReport, filters, mode) => {
     return 'Todos los productos'
   }
 
-  const selectedProducts = getSelectedInventoryProducts(
-    inventoryReport,
-    filters,
-    mode,
+  const selectedIds = new Set(
+    filters.productIds.map((productId) => String(productId)),
   )
+
+  const productsById = new Map()
+
+  ;(productCatalog || []).forEach((product) => {
+    if (selectedIds.has(String(product.id))) {
+      productsById.set(String(product.id), {
+        code: product.code,
+        name: product.name,
+      })
+    }
+  })
+
+  ;(inventoryReport?.products || []).forEach((product) => {
+    if (selectedIds.has(String(product.productId))) {
+      productsById.set(String(product.productId), {
+        code: product.code,
+        name: product.name,
+      })
+    }
+  })
+
+  ;(movementReport?.byProduct || []).forEach((product) => {
+    if (selectedIds.has(String(product.productId))) {
+      productsById.set(String(product.productId), {
+        code: product.code,
+        name: product.name,
+      })
+    }
+  })
+
+  const selectedProducts = filters.productIds
+    .map((productId) => productsById.get(String(productId)))
+    .filter(Boolean)
 
   if (selectedProducts.length === 0) {
     return `${filters.productIds.length} productos seleccionados`
   }
 
-  return selectedProducts
-    .map((product) => `${product.code} · ${product.name}`)
-    .join(', ')
+  const labels = selectedProducts.map(
+    (product) => `${product.code} · ${product.name}`,
+  )
+
+  const missingProducts =
+    filters.productIds.length - selectedProducts.length
+
+  if (missingProducts > 0) {
+    labels.push(
+      `${missingProducts} ${
+        missingProducts === 1 ? 'producto adicional' : 'productos adicionales'
+      }`,
+    )
+  }
+
+  return labels.join(', ')
 }
 
 const applyTitleStyle = (cell) => {
@@ -263,6 +313,7 @@ const addSummarySheet = ({
   workbook,
   inventoryReport,
   movementReport,
+  productCatalog,
   filters,
   mode,
   generatedAt,
@@ -312,7 +363,13 @@ const addSummarySheet = ({
     ],
     [
       'Productos',
-      getSelectedProductLabel(inventoryReport, filters, mode),
+      getSelectedProductLabel(
+        inventoryReport,
+        movementReport,
+        productCatalog,
+        filters,
+        mode,
+      ),
     ],
   ]
 
@@ -646,6 +703,7 @@ const downloadWorkbook = async (workbook, filename) => {
  * @param {Object} options datos necesarios para construir el libro
  * @param {Object} options.inventoryReport reporte actual de inventario
  * @param {Object} options.movementReport reporte de movimientos a exportar
+ * @param {Array<Object>} options.productCatalog catálogo de productos para describir filtros históricos
  * @param {Object} options.filters filtros aplicados a la vista
  * @param {'filtered'|'full'} options.mode modalidad de exportación
  * @returns {Promise<void>}
@@ -653,6 +711,7 @@ const downloadWorkbook = async (workbook, filename) => {
 const exportReportsToExcel = async ({
   inventoryReport,
   movementReport,
+  productCatalog = [],
   filters = {},
   mode = 'filtered',
 }) => {
@@ -683,6 +742,7 @@ const exportReportsToExcel = async ({
     workbook,
     inventoryReport,
     movementReport,
+    productCatalog,
     filters,
     mode,
     generatedAt,

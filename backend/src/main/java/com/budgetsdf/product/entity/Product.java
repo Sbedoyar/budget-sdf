@@ -38,4 +38,7 @@ public class Product {
 
     @Column(name = "stock_minimo", nullable = false)
     private Integer minimumStock = 0;
+
+    @Column(name = "activo", nullable = false)
+    private Boolean active = true;
 }
