@@ -320,11 +320,11 @@
 }
 
 .report-inventory-summary {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
 }
 
 .report-movement-summary {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
 }
 
 .report-summary-card {
@@ -555,7 +555,7 @@
 .report-donut-layout {
   display: grid;
 
-  grid-template-columns: minmax(190px, 0.9fr) minmax(160px, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
 
   align-items: center;
 
@@ -1672,7 +1672,7 @@
   right: 0;
   z-index: 40;
 
-  width: max(100%, 330px);
+  width: 100%;
 
   padding: 10px;
 
@@ -2133,7 +2133,7 @@
 
    ========================================================= */
 
-@media (max-width: 1250px) {
+@media (max-width: 1200px) {
   .report-advanced-filter-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2145,9 +2145,7 @@
   .report-movement-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
 
-@media (max-width: 1050px) {
   .report-period-block {
     align-items: flex-start;
     flex-direction: column;

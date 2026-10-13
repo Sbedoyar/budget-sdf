@@ -36,6 +36,7 @@
    ========================================================= */
 
 .card {
+  min-width: 0;
   padding: 24px;
 
   border: 1px solid rgba(219, 231, 225, 0.95);
@@ -59,6 +60,7 @@
    ========================================================= */
 
 .form-group {
+  min-width: 0;
   display: flex;
   flex-direction: column;
 
@@ -73,6 +75,7 @@
 
 .form-input {
   width: 100%;
+  min-width: 0;
   max-width: 420px;
 
   padding: 10px 12px;
@@ -295,7 +298,7 @@ select.form-input {
    RESPONSIVE DE COMPONENTES GENERALES
    ========================================================= */
 
-@media (max-width: 768px) {
+@media (max-width: 760px) {
   .page-title {
     font-size: 26px;
   }
@@ -425,7 +428,7 @@ select.form-input {
   left: 0;
 
   width: 100%;
-  min-width: 190px;
+  min-width: 0;
   max-height: 280px;
 
   overflow-y: auto;
@@ -490,6 +493,7 @@ select.form-input {
   font-weight: 500;
   line-height: 1.35;
   text-align: left;
+  overflow-wrap: anywhere;
 
   transition:
     color 0.15s ease,
@@ -605,4 +609,41 @@ select.form-input {
   .app-select-menu {
     max-height: 230px;
   }
+}
+
+/* Los contenedores se ajustan al ancho disponible; solo las tablas desplazan horizontalmente. */
+.app-content > *,
+.app-content :where(section, article),
+.categories-layout > *,
+.products-toolbar > *,
+.movements-toolbar > *,
+.alerts-toolbar > *,
+.report-toolbar > * {
+  min-width: 0;
+}
+
+.table-container,
+.categories-table-container,
+.products-table-container,
+.movements-table-container,
+.report-table-container,
+.dashboard-table-wrapper {
+  min-width: 0;
+  max-width: 100%;
+  overscroll-behavior-x: contain;
+}
+
+.page-title,
+.page-subtitle,
+.message-error,
+.message-success {
+  overflow-wrap: anywhere;
+}
+
+.category-modal,
+.product-modal {
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
 }

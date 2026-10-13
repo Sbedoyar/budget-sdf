@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { GoogleLogin } from '@react-oauth/google'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -19,6 +19,18 @@ import logoBudgetSdf from '../assets/logo-budget-sdf.png'
 
 // Gestiona el acceso local y con Google; ambas opciones guardan la sesión y conducen al dashboard.
 function LoginPage() {
+  const googleContainerRef = useRef(null)
+  const [googleButtonWidth, setGoogleButtonWidth] = useState(356)
+
+  // Google dibuja un iframe: su API necesita el ancho real del contenedor.
+  useEffect(() => {
+    const container = googleContainerRef.current
+    const observer = new ResizeObserver(([entry]) => {
+      setGoogleButtonWidth(Math.min(356, Math.floor(entry.contentRect.width)))
+    })
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [])
   const navigate = useNavigate()
 
   const [username, setUsername] = useState('')
@@ -270,7 +282,7 @@ function LoginPage() {
             <span>o continúa con</span>
           </div>
 
-          <div className="login-google-section">
+          <div className="login-google-section" ref={googleContainerRef}>
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={handleGoogleError}
@@ -279,7 +291,7 @@ function LoginPage() {
               size="large"
               shape="pill"
               text="signin_with"
-              width="356"
+              width={googleButtonWidth}
             />
           </div>
 
