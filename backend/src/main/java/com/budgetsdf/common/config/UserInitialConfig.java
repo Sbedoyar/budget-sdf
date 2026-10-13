@@ -1,7 +1,7 @@
 package com.budgetsdf.common.config;
 
-import com.budgetsdf.user.entity.UserRole;
 import com.budgetsdf.user.entity.User;
+import com.budgetsdf.user.entity.UserRole;
 import com.budgetsdf.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -26,19 +26,44 @@ public class UserInitialConfig {
      * @return tarea de inicialización ejecutada al arrancar la aplicación
      */
     @Bean
-    CommandLineRunner createInitialUser(UserRepository userRepository,
-                                           PasswordEncoder passwordEncoder,
-                                           @Value("${app.admin.username}") String username,
-                                           @Value("${app.admin.password}") String password) {
-        return args -> {
-            // La cuenta se crea solo en una base vacía y si ambas credenciales están configuradas.
-            if (userRepository.count() == 0 && StringUtils.hasText(username) && StringUtils.hasText(password)) {
-                User user = new User();
-                user.setUsername(username.trim());
-                user.setPassword(passwordEncoder.encode(password));
-                user.setRole(UserRole.PROPIETARIO);
-                userRepository.save(user);
-            }
-        };
+    CommandLineRunner createInitialUser(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            @Value("${app.admin.username}") String username,
+            @Value("${app.admin.password}") String password
+    ) {
+        return args -> initializeUser(
+                userRepository,
+                passwordEncoder,
+                username,
+                password
+        );
+    }
+
+    private void initializeUser(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            String username,
+            String password
+    ) {
+        if (!shouldCreateInitialUser(userRepository, username, password)) {
+            return;
+        }
+
+        User user = new User();
+        user.setUsername(username.trim());
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRole(UserRole.PROPIETARIO);
+        userRepository.save(user);
+    }
+
+    private boolean shouldCreateInitialUser(
+            UserRepository userRepository,
+            String username,
+            String password
+    ) {
+        return userRepository.count() == 0
+                && StringUtils.hasText(username)
+                && StringUtils.hasText(password);
     }
 }

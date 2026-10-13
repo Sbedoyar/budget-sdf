@@ -21,10 +21,14 @@ import java.util.List;
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
     private final JwtService jwtService;
     private final UserRepository userRepository;
 
-    public JwtAuthenticationFilter(JwtService jwtService, UserRepository userRepository) {
+    public JwtAuthenticationFilter(
+            JwtService jwtService,
+            UserRepository userRepository
+    ) {
         this.jwtService = jwtService;
         this.userRepository = userRepository;
     }
@@ -39,26 +43,57 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * @throws IOException si ocurre un error de entrada o salida
      */
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
+
         String authorization = request.getHeader("Authorization");
-        if (authorization != null && authorization.startsWith("Bearer ")
-                && SecurityContextHolder.getContext().getAuthentication() == null) {
-            try {
-                String token = authorization.substring(7);
-                String username = jwtService.getUsername(token);
-                User user = userRepository.findByUsername(username).orElse(null);
-                // La autenticación se establece solo para un usuario existente y un token vigente.
-                if (user != null && jwtService.isValid(token)) {
-                    var authentication = new UsernamePasswordAuthenticationToken(
-                            username, null, List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
-            } catch (JwtException | IllegalArgumentException ignored) {
-                // Un token mal formado o inválido no debe dejar una identidad autenticada.
-                SecurityContextHolder.clearContext();
-            }
+
+        if (shouldAuthenticate(authorization)) {
+            authenticate(authorization);
         }
+
         filterChain.doFilter(request, response);
+    }
+
+    private boolean shouldAuthenticate(String authorization) {
+        return authorization != null
+                && authorization.startsWith("Bearer ")
+                && SecurityContextHolder.getContext().getAuthentication() == null;
+    }
+
+    private void authenticate(String authorization) {
+        try {
+            String token = authorization.substring(7);
+            setAuthentication(token);
+        } catch (JwtException | IllegalArgumentException ignored) {
+            // Un token mal formado o inválido no debe dejar una identidad autenticada.
+            SecurityContextHolder.clearContext();
+        }
+    }
+
+    private void setAuthentication(String token) {
+        String username = jwtService.getUsername(token);
+        User user = userRepository.findByUsername(username).orElse(null);
+
+        // La autenticación se establece solo para un usuario existente y un token vigente.
+        if (user == null || !jwtService.isValid(token)) {
+            return;
+        }
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        username,
+                        null,
+                        List.of(
+                                new SimpleGrantedAuthority(
+                                        "ROLE_" + user.getRole().name()
+                                )
+                        )
+                );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 }

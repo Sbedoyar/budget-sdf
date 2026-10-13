@@ -8,7 +8,6 @@ import com.budgetsdf.movement.entity.MovementType;
 import com.budgetsdf.movement.repository.MovementRepository;
 import com.budgetsdf.product.entity.Product;
 import com.budgetsdf.product.repository.ProductRepository;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,8 +25,8 @@ public class MovementService {
 
     public MovementService(
             MovementRepository movementRepository,
-            ProductRepository productRepository) {
-
+            ProductRepository productRepository
+    ) {
         this.movementRepository = movementRepository;
         this.productRepository = productRepository;
     }
@@ -41,68 +40,24 @@ public class MovementService {
      */
     @Transactional
     public MovementResponse recordMovement(MovementRequest request) {
+        Product product = findProduct(request.getProductId());
 
-        Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new BusinessException("Producto no encontrado"));
-
-        if (Boolean.FALSE.equals(product.getActive())) {
-            throw new BusinessException(
-                    "El producto está inactivo y no permite registrar movimientos"
-            );
-        }
-
-        if (request.getType() == MovementType.ENTRADA) {
-
-            product.setCurrentStock(
-                    product.getCurrentStock() + request.getQuantity()
-            );
-
-        } else if (request.getType() == MovementType.SALIDA) {
-
-            // Evita que una salida deje el inventario con una cantidad negativa.
-            if (product.getCurrentStock() < request.getQuantity()) {
-                throw new BusinessException("Stock insuficiente");
-            }
-
-            product.setCurrentStock(
-                    product.getCurrentStock() - request.getQuantity()
-            );
-        }
-
+        validateActiveProduct(product);
+        updateStock(product, request);
         productRepository.save(product);
 
-        Movement movement = new Movement();
+        Movement movement = createMovement(product, request);
+        Movement savedMovement = movementRepository.save(movement);
 
-        movement.setProduct(product);
-        movement.setType(request.getType());
-        movement.setQuantity(request.getQuantity());
-        movement.setResultingStock(product.getCurrentStock());
-        movement.setDate(LocalDateTime.now());
-        movement.setObservation(request.getObservation());
-
-        Movement savedMovement =
-                movementRepository.save(movement);
-
-        MovementResponse response = new MovementResponse();
-
-        response.setId(savedMovement.getId());
-        response.setProductId(product.getId());
-        response.setProductName(product.getName());
-        response.setType(savedMovement.getType());
-        response.setQuantity(savedMovement.getQuantity());
-        response.setDate(savedMovement.getDate());
-        response.setObservation(savedMovement.getObservation());
-        response.setResultingStock(savedMovement.getResultingStock());
-
-        return response;
+        return convertToResponse(savedMovement);
     }
+
     /**
      * Recupera todos los movimientos del más reciente al más antiguo.
      *
      * @return movimientos convertidos al formato de respuesta
      */
     public List<MovementResponse> getAllMovements() {
-
         return movementRepository.findAllByOrderByDateDesc()
                 .stream()
                 .map(this::convertToResponse)
@@ -117,7 +72,6 @@ public class MovementService {
      * @throws BusinessException si el producto no existe
      */
     public List<MovementResponse> getMovementsByProduct(Long productId) {
-
         if (!productRepository.existsById(productId)) {
             throw new BusinessException("Producto no encontrado");
         }
@@ -128,8 +82,68 @@ public class MovementService {
                 .map(this::convertToResponse)
                 .toList();
     }
-    private MovementResponse convertToResponse(Movement movement) {
 
+    private Product findProduct(Long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new BusinessException("Producto no encontrado"));
+    }
+
+    private void validateActiveProduct(Product product) {
+        if (Boolean.FALSE.equals(product.getActive())) {
+            throw new BusinessException(
+                    "El producto está inactivo y no permite registrar movimientos"
+            );
+        }
+    }
+
+    private void updateStock(Product product, MovementRequest request) {
+        if (request.getType() == MovementType.ENTRADA) {
+            increaseStock(product, request.getQuantity());
+            return;
+        }
+
+        if (request.getType() == MovementType.SALIDA) {
+            decreaseStock(product, request.getQuantity());
+        }
+    }
+
+    private void increaseStock(Product product, Integer quantity) {
+        product.setCurrentStock(
+                product.getCurrentStock() + quantity
+        );
+    }
+
+    private void decreaseStock(Product product, Integer quantity) {
+        validateAvailableStock(product, quantity);
+        product.setCurrentStock(
+                product.getCurrentStock() - quantity
+        );
+    }
+
+    private void validateAvailableStock(Product product, Integer quantity) {
+        // Evita que una salida deje el inventario con una cantidad negativa.
+        if (product.getCurrentStock() < quantity) {
+            throw new BusinessException("Stock insuficiente");
+        }
+    }
+
+    private Movement createMovement(
+            Product product,
+            MovementRequest request
+    ) {
+        Movement movement = new Movement();
+
+        movement.setProduct(product);
+        movement.setType(request.getType());
+        movement.setQuantity(request.getQuantity());
+        movement.setResultingStock(product.getCurrentStock());
+        movement.setDate(LocalDateTime.now());
+        movement.setObservation(request.getObservation());
+
+        return movement;
+    }
+
+    private MovementResponse convertToResponse(Movement movement) {
         MovementResponse response = new MovementResponse();
 
         response.setId(movement.getId());

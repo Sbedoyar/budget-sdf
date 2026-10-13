@@ -16,11 +16,14 @@ import java.util.List;
  */
 @Service
 public class CategoryService {
+
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
 
-    public CategoryService(CategoryRepository categoryRepository,
-                            ProductRepository productRepository) {
+    public CategoryService(
+            CategoryRepository categoryRepository,
+            ProductRepository productRepository
+    ) {
         this.categoryRepository = categoryRepository;
         this.productRepository = productRepository;
     }
@@ -33,6 +36,7 @@ public class CategoryService {
      */
     public CategoryResponse createCategory(CategoryRequest request) {
         String name = normalizeName(request.getName());
+
         // La comparación sin distinguir mayúsculas evita nombres duplicados por formato.
         if (categoryRepository.existsByNameIgnoreCase(name)) {
             throw new BusinessException("Ya existe una categoría con ese nombre");
@@ -49,7 +53,8 @@ public class CategoryService {
      * @return categorías preparadas para la respuesta de la API
      */
     public List<CategoryResponse> getAllCategories() {
-        return categoryRepository.findAllByOrderByNameAsc().stream()
+        return categoryRepository.findAllByOrderByNameAsc()
+                .stream()
                 .map(this::convertToResponse)
                 .toList();
     }
@@ -76,11 +81,7 @@ public class CategoryService {
         Category category = findCategory(id);
         String name = normalizeName(request.getName());
 
-        categoryRepository.findByNameIgnoreCase(name)
-                .filter(existingCategory -> !existingCategory.getId().equals(id))
-                .ifPresent(existingCategory -> {
-                    throw new BusinessException("Ya existe una categoría con ese nombre");
-                });
+        validateUniqueName(name, id);
 
         category.setName(name);
         return convertToResponse(categoryRepository.save(category));
@@ -95,27 +96,54 @@ public class CategoryService {
     @Transactional
     public void deleteCategory(Long id) {
         Category category = findCategory(id);
+
         // Se conserva la integridad de las referencias entre productos y categorías.
         if (productRepository.existsByCategoryId(id)) {
             throw new BusinessException(
-                    "No se puede eliminar la categoría porque tiene productos asociados");
+                    "No se puede eliminar la categoría porque tiene productos asociados"
+            );
         }
+
         categoryRepository.delete(category);
+    }
+
+    private void validateUniqueName(String name, Long currentCategoryId) {
+        Category existingCategory = categoryRepository
+                .findByNameIgnoreCase(name)
+                .orElse(null);
+
+        if (existingCategory == null) {
+            return;
+        }
+
+        if (!existingCategory.getId().equals(currentCategoryId)) {
+            throw new BusinessException(
+                    "Ya existe una categoría con ese nombre"
+            );
+        }
     }
 
     private Category findCategory(Long id) {
         return categoryRepository.findById(id)
-                .orElseThrow(() -> new BusinessException("Categoría no encontrada"));
+                .orElseThrow(() ->
+                        new BusinessException("Categoría no encontrada")
+                );
     }
 
     private String normalizeName(String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new BusinessException("El nombre de la categoría es obligatorio");
+            throw new BusinessException(
+                    "El nombre de la categoría es obligatorio"
+            );
         }
+
         return name.trim();
     }
 
     private CategoryResponse convertToResponse(Category category) {
-        return new CategoryResponse(category.getId(), category.getName());
+        return new CategoryResponse(
+                category.getId(),
+                category.getName()
+        );
     }
 }
