@@ -10,6 +10,7 @@
 
 .app-shell {
   min-height: 100vh;
+  height: 100dvh;
 
   background:
     radial-gradient(
@@ -45,6 +46,7 @@
 
   width: var(--sidebar-width);
   height: 100vh;
+  height: 100dvh;
 
   display: flex;
   flex-direction: column;
@@ -90,7 +92,9 @@
 
   gap: 13px;
 
-  padding: 4px 8px 26px;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0 8px 24px;
 
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -102,6 +106,7 @@
 
 .sidebar-navigation {
   flex: 1;
+  min-height: 0;
 
   display: flex;
   flex-direction: column;
@@ -121,6 +126,8 @@
 
 .sidebar-nav-link {
   min-height: 48px;
+  flex-shrink: 0;
+  min-width: 0;
 
   display: flex;
   align-items: center;
@@ -187,6 +194,7 @@
    ========================================================= */
 
 .sidebar-bottom {
+  flex-shrink: 0;
   margin-top: auto;
 
   padding-top: 18px;
@@ -298,7 +306,9 @@
    ========================================================= */
 
 .app-main {
+  min-width: 0;
   min-height: 100vh;
+  height: 100dvh;
 
   margin-left: var(--sidebar-width);
 
@@ -322,6 +332,7 @@
   justify-content: space-between;
 
   padding: 0 30px;
+  gap: 16px;
 
   border-bottom: 1px solid rgba(219, 231, 225, 0.9);
 
@@ -448,45 +459,172 @@
 
 /* =========================================================
    RESPONSIVE DEL LAYOUT
-   En pantallas pequeñas el sidebar deja de estar fijo.
+   Sidebar completo, compacto y drawer móvil.
    ========================================================= */
 
-@media (max-width: 900px) {
+.sidebar-brand-logo {
+  width: 120px;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.topbar-leading,
+.topbar-store,
+.topbar-user {
+  min-width: 0;
+}
+
+.topbar-leading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.topbar-store > div:last-child,
+.topbar-user > div:last-child {
+  min-width: 0;
+}
+
+.topbar-store strong,
+.topbar-store span,
+.topbar-user strong,
+.topbar-user span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-user {
+  max-width: 40%;
+}
+
+.topbar-avatar,
+.topbar-store-icon {
+  flex-shrink: 0;
+}
+
+.topbar-menu-button,
+.sidebar-close-button {
+  display: none;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  color: var(--budget-800);
+  background: var(--surface-primary);
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
+.sidebar-nav-link:focus-visible,
+.sidebar-logout:focus-visible,
+.sidebar-close-button:focus-visible,
+.topbar-menu-button:focus-visible {
+  outline: 2px solid var(--budget-400);
+  outline-offset: 3px;
+}
+
+@media (min-width: 761px) and (max-width: 1200px) {
   .app-shell {
-    display: flex;
-    flex-direction: column;
+    --sidebar-width: 84px;
   }
 
   .app-sidebar {
-    position: relative;
-
-    width: 100%;
-    height: auto;
-
-    padding: 16px;
-
-    box-shadow: none;
+    padding: 20px 10px;
   }
 
+  .sidebar-brand {
+    padding: 0 0 20px;
+  }
+
+  .sidebar-brand-logo {
+    width: 64px;
+  }
+
+  .sidebar-nav-link,
+  .sidebar-logout,
+  .sidebar-profile {
+    justify-content: center;
+    gap: 0;
+    padding-inline: 0;
+  }
+
+  /* Las etiquetas siguen disponibles para lectores de pantalla. */
+  .sidebar-nav-link > span,
+  .sidebar-logout > span,
+  .profile-information {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .app-content {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 760px) {
   .app-main {
     margin-left: 0;
   }
 
-  .sidebar-navigation {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .app-sidebar {
+    width: min(270px, calc(100vw - 56px));
+    padding: 24px 18px;
+    overflow-y: auto;
+    z-index: 300;
+    visibility: hidden;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease, visibility 0.2s;
+  }
 
+  .app-sidebar-open {
+    visibility: visible;
+    transform: translateX(0);
+  }
+
+  .sidebar-navigation {
+    flex: 1 0 auto;
     overflow: visible;
   }
 
-  .sidebar-bottom {
-    margin-top: 18px;
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 290;
+    border: none;
+    background: rgba(2, 44, 34, 0.42);
+  }
+
+  .topbar-menu-button,
+  .sidebar-close-button {
+    display: flex;
+  }
+
+  .sidebar-close-button {
+    align-self: flex-end;
+    margin-bottom: 12px;
+    border-color: rgba(255, 255, 255, 0.18);
+    color: white;
+    background: rgba(255, 255, 255, 0.06);
   }
 
   .app-topbar {
-    position: relative;
-
-    padding: 0 18px;
+    padding: 0 20px;
   }
 
   .app-content {
@@ -495,38 +633,29 @@
 }
 
 @media (max-width: 520px) {
-  .topbar-store {
+  .app-topbar {
+    padding: 0 16px;
+    gap: 10px;
+  }
+
+  .app-content {
+    padding: 18px 16px;
+  }
+
+  .topbar-store-icon,
+  .topbar-store span,
+  .topbar-user > div:last-child {
     display: none;
   }
 
-  .app-topbar {
-    justify-content: flex-end;
-  }
-
-  .sidebar-brand {
-    padding-bottom: 18px;
-  }
-
-  .sidebar-navigation {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .topbar-user {
+    max-width: none;
+    flex-shrink: 0;
   }
 }
-.sidebar-brand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 
-  padding: 0 8px 24px;
-
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.sidebar-brand-logo {
-  width: 120px;
-  max-width: 100%;
-  height: auto;
-
-  display: block;
-
-  object-fit: contain;
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar {
+    transition: none;
+  }
 }
