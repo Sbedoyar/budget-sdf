@@ -30,7 +30,7 @@ class ReportServiceTests {
         productRepository = mock(ProductRepository.class);
         movementRepository = mock(MovementRepository.class);
 
-        reportService = new ReportService(
+        reportService = new ReportServiceImpl(
                 productRepository,
                 movementRepository
         );

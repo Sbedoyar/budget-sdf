@@ -35,7 +35,7 @@ class ProductServiceTests {
         categoryRepository = mock(CategoryRepository.class);
         movementRepository = mock(MovementRepository.class);
 
-        productService = new ProductService(
+        productService = new ProductServiceImpl(
                 productRepository,
                 categoryRepository,
                 movementRepository

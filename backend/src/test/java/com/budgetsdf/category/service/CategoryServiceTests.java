@@ -27,7 +27,7 @@ class CategoryServiceTests {
     void setUp() {
         categoryRepository = mock(CategoryRepository.class);
         productRepository = mock(ProductRepository.class);
-        categoryService = new CategoryService(categoryRepository, productRepository);
+        categoryService = new CategoryServiceImpl(categoryRepository, productRepository);
     }
 
     @Test
