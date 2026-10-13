@@ -39,15 +39,14 @@ public class UserService {
         this.expirationMs = expirationMs;
     }
 
-        /**
-         * Autentica con nombre de usuario y contraseña y emite un token JWT.
-         *
-         * @param request credenciales tradicionales del usuario
-         * @return token y datos básicos de la sesión autenticada
-         * @throws BusinessException si el usuario o la contraseña no son válidos
-         */
+    /**
+     * Autentica con nombre de usuario y contraseña y emite un token JWT.
+     *
+     * @param request credenciales tradicionales del usuario
+     * @return token y datos básicos de la sesión autenticada
+     * @throws BusinessException si el usuario o la contraseña no son válidos
+     */
     public LoginResponse login(LoginRequest request) {
-
         User user = userRepository
                 .findByUsername(request.getUsername())
                 .orElseThrow(() ->
@@ -56,80 +55,88 @@ public class UserService {
                         )
                 );
 
+        validatePassword(request, user);
+        return createLoginResponse(user);
+    }
+
+    /**
+     * Verifica la credencial de Google y asocia su identidad con una cuenta autorizada.
+     *
+     * @param request credencial de identidad emitida por Google
+     * @return token y datos básicos de la sesión autenticada
+     * @throws BusinessException si Google no valida la identidad o la cuenta no está autorizada
+     */
+    @Transactional
+    public LoginResponse loginWithGoogle(GoogleLoginRequest request) {
+        GoogleTokenService.GoogleUserInfo googleUser =
+                googleTokenService.verify(request.getCredential());
+
+        User user = findOrLinkGoogleUser(googleUser);
+        return createLoginResponse(user);
+    }
+
+    private void validatePassword(LoginRequest request, User user) {
         // La contraseña recibida se compara con el hash almacenado, nunca en texto plano.
-        if (!passwordEncoder.matches(
-                request.getPassword(),
-                user.getPassword()
-        )) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new BusinessException(
                     "Credenciales incorrectas"
             );
         }
-
-        return createLoginResponse(user);
     }
 
-        /**
-         * Verifica la credencial de Google y asocia su identidad con una cuenta autorizada.
-         *
-         * @param request credencial de identidad emitida por Google
-         * @return token y datos básicos de la sesión autenticada
-         * @throws BusinessException si Google no valida la identidad o la cuenta no está autorizada
-         */
-    @Transactional
-    public LoginResponse loginWithGoogle(
-            GoogleLoginRequest request
+    private User findOrLinkGoogleUser(
+            GoogleTokenService.GoogleUserInfo googleUser
     ) {
-
-        GoogleTokenService.GoogleUserInfo googleUser =
-                googleTokenService.verify(
-                        request.getCredential()
-                );
-
         // Primero se busca el identificador estable de Google para reconocer cuentas vinculadas.
         User user = userRepository
                 .findByGoogleSubject(googleUser.subject())
                 .orElse(null);
 
-        if (user == null) {
-
-            // Solo se vincula Google a una cuenta local previamente autorizada por correo.
-            user = userRepository
-                    .findByEmail(googleUser.email())
-                    .orElseThrow(() ->
-                            new BusinessException(
-                                    "La cuenta de Google no está autorizada"
-                            )
-                    );
-
-            if (user.getGoogleSubject() != null
-                    && !user.getGoogleSubject().isBlank()
-                    && !user.getGoogleSubject()
-                    .equals(googleUser.subject())) {
-
-                throw new BusinessException(
-                        "La cuenta de Google no coincide con el usuario registrado"
-                );
-            }
-
-            user.setGoogleSubject(
-                    googleUser.subject()
-            );
-
-            userRepository.save(user);
+        if (user != null) {
+            return user;
         }
 
-        return createLoginResponse(user);
+        return linkGoogleUser(googleUser);
     }
 
-        /**
-         * Construye la respuesta común para ambos métodos de autenticación.
-         *
-         * @param user usuario autenticado
-         * @return JWT firmado, tipo de token, rol y vigencia en segundos
-         */
-    private LoginResponse createLoginResponse(User user) {
+    private User linkGoogleUser(
+            GoogleTokenService.GoogleUserInfo googleUser
+    ) {
+        // Solo se vincula Google a una cuenta local previamente autorizada por correo.
+        User user = userRepository
+                .findByEmail(googleUser.email())
+                .orElseThrow(() ->
+                        new BusinessException(
+                                "La cuenta de Google no está autorizada"
+                        )
+                );
 
+        validateGoogleSubject(user, googleUser.subject());
+
+        user.setGoogleSubject(googleUser.subject());
+        return userRepository.save(user);
+    }
+
+    private void validateGoogleSubject(User user, String googleSubject) {
+        boolean hasDifferentGoogleSubject =
+                user.getGoogleSubject() != null
+                        && !user.getGoogleSubject().isBlank()
+                        && !user.getGoogleSubject().equals(googleSubject);
+
+        if (hasDifferentGoogleSubject) {
+            throw new BusinessException(
+                    "La cuenta de Google no coincide con el usuario registrado"
+            );
+        }
+    }
+
+    /**
+     * Construye la respuesta común para ambos métodos de autenticación.
+     *
+     * @param user usuario autenticado
+     * @return JWT firmado, tipo de token, rol y vigencia en segundos
+     */
+    private LoginResponse createLoginResponse(User user) {
         return new LoginResponse(
                 jwtService.generateToken(user),
                 "Bearer",

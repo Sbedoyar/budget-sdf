@@ -14,7 +14,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-        /** Devuelve un error HTTP 400 con el mensaje de una regla de negocio incumplida. */
+    /** Devuelve un error HTTP 400 con el mensaje de una regla de negocio incumplida. */
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(
             BusinessException exception) {
@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(response);
     }
-        /** Devuelve un mensaje general HTTP 400 cuando el cuerpo no puede interpretarse. */
+    /** Devuelve un mensaje general HTTP 400 cuando el cuerpo no puede interpretarse. */
     @ExceptionHandler(HttpMessageNotReadableException.class)
         public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(
                 HttpMessageNotReadableException ex) {

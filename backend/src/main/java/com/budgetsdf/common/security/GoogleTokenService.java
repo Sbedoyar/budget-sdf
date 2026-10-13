@@ -47,49 +47,66 @@ public class GoogleTokenService {
      * @throws BusinessException si la credencial no es válida o no permite identificar al usuario
      */
     public GoogleUserInfo verify(String credential) {
+        validateCredential(credential);
 
+        try {
+            return verifyGoogleIdentity(credential);
+        } catch (GeneralSecurityException | IOException exception) {
+            throw new BusinessException(
+                    "No fue posible validar el inicio de sesión con Google"
+            );
+        }
+    }
+
+    private void validateCredential(String credential) {
         if (credential == null || credential.isBlank()) {
             throw new BusinessException(
                     "La credencial de Google es obligatoria"
             );
         }
+    }
 
-        try {
-            GoogleIdToken idToken = verifier.verify(credential);
+    private GoogleUserInfo verifyGoogleIdentity(String credential)
+            throws GeneralSecurityException, IOException {
 
-            if (idToken == null) {
-                throw new BusinessException(
-                        "Token de Google inválido"
-                );
-            }
+        GoogleIdToken idToken = verifier.verify(credential);
+        validateIdToken(idToken);
 
-            // No se acepta una identidad de Google cuyo correo no haya sido verificado.
-            GoogleIdToken.Payload payload = idToken.getPayload();
+        GoogleIdToken.Payload payload = idToken.getPayload();
+        validateEmailVerification(payload);
 
-            if (!Boolean.TRUE.equals(payload.getEmailVerified())) {
-                throw new BusinessException(
-                        "El correo de Google no está verificado"
-                );
-            }
+        String subject = payload.getSubject();
+        String email = payload.getEmail();
+        validateIdentity(subject, email);
 
-            String subject = payload.getSubject();
-            String email = payload.getEmail();
+        return new GoogleUserInfo(
+                subject,
+                email.trim().toLowerCase()
+        );
+    }
 
-            if (subject == null || subject.isBlank()
-                    || email == null || email.isBlank()) {
-                throw new BusinessException(
-                        "No fue posible obtener la identidad de Google"
-                );
-            }
-
-            return new GoogleUserInfo(
-                    subject,
-                    email.trim().toLowerCase()
-            );
-
-        } catch (GeneralSecurityException | IOException exception) {
+    private void validateIdToken(GoogleIdToken idToken) {
+        if (idToken == null) {
             throw new BusinessException(
-                    "No fue posible validar el inicio de sesión con Google"
+                    "Token de Google inválido"
+            );
+        }
+    }
+
+    private void validateEmailVerification(GoogleIdToken.Payload payload) {
+        // No se acepta una identidad de Google cuyo correo no haya sido verificado.
+        if (!Boolean.TRUE.equals(payload.getEmailVerified())) {
+            throw new BusinessException(
+                    "El correo de Google no está verificado"
+            );
+        }
+    }
+
+    private void validateIdentity(String subject, String email) {
+        if (subject == null || subject.isBlank()
+                || email == null || email.isBlank()) {
+            throw new BusinessException(
+                    "No fue posible obtener la identidad de Google"
             );
         }
     }
