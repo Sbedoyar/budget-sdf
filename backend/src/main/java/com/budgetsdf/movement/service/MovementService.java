@@ -3,7 +3,6 @@ package com.budgetsdf.movement.service;
 import com.budgetsdf.common.exception.BusinessException;
 import com.budgetsdf.movement.dto.request.MovementRequest;
 import com.budgetsdf.movement.dto.response.MovementResponse;
-import com.budgetsdf.movement.entity.MovementType;
 
 import java.util.List;
 
