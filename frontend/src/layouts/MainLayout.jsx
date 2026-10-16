@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import {
   AlertTriangle,
   BarChart3,
@@ -13,12 +13,13 @@ import {
   X,
 } from 'lucide-react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { logout } from '../services/authService'
+import { AuthContext } from '../contexts/AuthContext'
 import '../styles/layout.css'
 import logoBudgetSdf from '../assets/logo-budget-sdf.png'
 
 // Proporciona navegación común, datos de sesión visibles y el espacio para la página activa.
 function MainLayout() {
+  const { username: sessionUsername, role: sessionRole, logout } = useContext(AuthContext)
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const sidebarRef = useRef(null)
@@ -73,8 +74,8 @@ function MainLayout() {
     }
   }, [mobileMenuOpen])
 
-  const username = localStorage.getItem('username') || 'Propietario'
-  const role = localStorage.getItem('role') || 'PROPIETARIO'
+  const username = sessionUsername || 'Propietario'
+  const role = sessionRole || 'PROPIETARIO'
 
   // Cierra la sesión local y navega a la pantalla de inicio de sesión.
   const handleLogout = () => {

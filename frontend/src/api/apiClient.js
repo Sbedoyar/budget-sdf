@@ -28,6 +28,7 @@ apiClient.interceptors.response.use(
       localStorage.removeItem('token')
       localStorage.removeItem('username')
       localStorage.removeItem('role')
+      window.dispatchEvent(new Event('auth-session-expired'))
 
       if (window.location.pathname !== '/login') {
         window.location.href = '/login'
