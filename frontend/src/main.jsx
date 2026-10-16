@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import App from './App.jsx'
+import AuthProvider from './contexts/AuthProvider.jsx'
 
 import './styles/global.css'
 import './styles/components.css'
@@ -14,7 +15,9 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <GoogleOAuthProvider clientId={googleClientId}>
       <BrowserRouter>
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </BrowserRouter>
     </GoogleOAuthProvider>
   </StrictMode>,

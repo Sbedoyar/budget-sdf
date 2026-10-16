@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { GoogleLogin } from '@react-oauth/google'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -10,15 +10,13 @@ import {
   ShieldCheck,
   User,
 } from 'lucide-react'
-import {
-  login,
-  loginWithGoogle,
-} from '../services/authService'
+import { AuthContext } from '../contexts/AuthContext'
 import '../styles/pages/login.css'
 import logoBudgetSdf from '../assets/logo-budget-sdf.png'
 
 // Gestiona el acceso local y con Google; ambas opciones guardan la sesión y conducen al dashboard.
 function LoginPage() {
+  const { login, loginWithGoogle } = useContext(AuthContext)
   const googleContainerRef = useRef(null)
   const [googleButtonWidth, setGoogleButtonWidth] = useState(356)
 
