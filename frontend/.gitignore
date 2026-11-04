@@ -1,4 +1,9 @@
-# Logs
+# ==================================================
+# LOGS
+# Archivos de registro generados durante la ejecución
+# o por herramientas como npm, Yarn y pnpm.
+# No son necesarios para ejecutar el proyecto.
+# ==================================================
 logs
 *.log
 npm-debug.log*
@@ -7,14 +12,44 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+
+# ==================================================
+# DEPENDENCIAS
+# node_modules contiene las librerías instaladas con npm.
+# No se sube porque puede reconstruirse con "npm install".
+# ==================================================
 node_modules
+
+
+# ==================================================
+# ARCHIVOS DE CONSTRUCCIÓN (BUILD)
+# Carpetas generadas al construir la aplicación para
+# producción, por ejemplo mediante "npm run build".
+# ==================================================
 dist
 dist-ssr
+
+
+# ==================================================
+# CONFIGURACIONES LOCALES
+# Archivos con configuraciones específicas del entorno
+# local del desarrollador.
+# ==================================================
 *.local
 
-# Editor directories and files
+
+# ==================================================
+# EDITORES Y SISTEMA OPERATIVO
+# Archivos generados por VS Code, IntelliJ, macOS
+# y otras herramientas del entorno de desarrollo.
+# No forman parte del código de la aplicación.
+# ==================================================
 .vscode/*
+
+# Excepción: permite subir la recomendación de
+# extensiones de VS Code.
 !.vscode/extensions.json
+
 .idea
 .DS_Store
 *.suo
@@ -23,5 +58,15 @@ dist-ssr
 *.sln
 *.sw?
 
+
+# ==================================================
+# VARIABLES DE ENTORNO
+# Ignora archivos .env porque pueden contener
+# información sensible, como claves o credenciales.
+# ==================================================
 .env*
+
+# Excepción: permite subir .env.example para mostrar
+# qué variables necesita el proyecto, pero sin
+# incluir sus valores reales.
 !.env.example
