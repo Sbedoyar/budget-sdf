@@ -9,6 +9,7 @@ const apiClient = axios.create({
 })
 
 // Adjunta el JWT almacenado a cada solicitud autenticada.
+//agrega el JWT al encabezado (header) de la petición HTTP antes de enviarla al backend.
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
 
