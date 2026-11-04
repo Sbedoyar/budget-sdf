@@ -7,6 +7,7 @@ import {
 } from '../services/authService'
 
 // Comparte la sesión en React; authService conserva su persistencia en localStorage.
+// Children representa los componentes que están dentro de AuthProvider, que en este caso sería App.
 function AuthProvider({ children }) {
   const [session, setSession] = useState(() => ({
     token: localStorage.getItem('token'),
