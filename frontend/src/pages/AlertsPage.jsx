@@ -1,5 +1,4 @@
-import { getErrorMessage } from '../utils/getErrorMessage'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   AlertTriangle,
   Boxes,
@@ -14,73 +13,20 @@ import {
   X,
 } from 'lucide-react'
 import AppSelect from '../components/AppSelect'
+import { useFetch } from '../hooks/useFetch'
 import { getLowStockAlerts } from '../services/alertService'
 import '../styles/pages/alerts.css'
 
 // Consulta alertas de inventario y permite buscarlas, filtrarlas y priorizarlas localmente.
 function AlertsPage() {
-  const [alerts, setAlerts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState('')
+  const { data: alerts, loading, refreshing, error, refetch } = useFetch(getLowStockAlerts, {
+    initialData: [],
+    fallbackMessage: 'No fue posible cargar las alertas',
+  })
 
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [sortOrder, setSortOrder] = useState('critical')
-
-  // Actualiza las alertas; distingue la carga inicial de la actualización solicitada por el usuario.
-  const fetchAlerts = async (showRefreshState = false) => {
-    try {
-      if (showRefreshState) {
-        setRefreshing(true)
-      } else {
-        setLoading(true)
-      }
-
-      setError('')
-
-      const data = await getLowStockAlerts()
-      setAlerts(data)
-    } catch (error) {
-      setError(
-        getErrorMessage(error, 'No fue posible cargar las alertas'),
-      )
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }
-
-  // Carga la lista inicial y evita actualizar el componente tras desmontarse.
-  useEffect(() => {
-    let cancelled = false
-
-    const loadAlerts = async () => {
-      try {
-        const data = await getLowStockAlerts()
-
-        if (!cancelled) {
-          setAlerts(data)
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setError(
-            getErrorMessage(error, 'No fue posible cargar las alertas'),
-          )
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false)
-        }
-      }
-    }
-
-    loadAlerts()
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   // Cuenta productos agotados y productos que permanecen bajo el mínimo.
   const summary = useMemo(() => {
@@ -173,7 +119,7 @@ function AlertsPage() {
         <button
           type="button"
           className="alerts-refresh-button"
-          onClick={() => fetchAlerts(true)}
+          onClick={refetch}
           disabled={refreshing}
         >
           <RefreshCw
