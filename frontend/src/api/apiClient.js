@@ -1,6 +1,5 @@
 import axios from 'axios'
 
-// Cliente común: toma la URL base de configuración y centraliza encabezados y errores de sesión.
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: {
@@ -8,36 +7,45 @@ const apiClient = axios.create({
   },
 })
 
-// Adjunta el JWT almacenado a cada solicitud autenticada.
-//agrega el JWT al encabezado (header) de la petición HTTP antes de enviarla al backend.
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
+export function configureApiAuth({ getSession, onSessionExpired }) {
+  const requestInterceptor = apiClient.interceptors.request.use((config) => {
+    const { token, version } = getSession()
+    config.authSessionVersion = version
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-
-  return config
-})
-
-// Si el backend rechaza la autenticación, limpia la sesión y devuelve al usuario al login.
-apiClient.interceptors.response.use(
-  (response) => response,
-
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('username')
-      localStorage.removeItem('role')
-      window.dispatchEvent(new Event('auth-session-expired'))
-
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login'
-      }
+    if (token) {
+      config.headers.set('Authorization', `Bearer ${token}`)
+    } else {
+      config.headers.delete('Authorization')
     }
 
-    return Promise.reject(error)
-  },
-)
+    return config
+  }, undefined, { synchronous: true })
+
+  const responseInterceptor = apiClient.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      const config = error.config
+      const { token, version } = getSession()
+
+      // Un 401 de login o de una sesión anterior no debe cerrar la sesión actual.
+      if (
+        error.response?.status === 401 &&
+        !config?.skipAuthExpiration &&
+        token &&
+        config?.authSessionVersion === version
+      ) {
+        onSessionExpired()
+      }
+
+      return Promise.reject(error)
+    },
+  )
+
+  // Evita acumular interceptores al desmontar el proveedor o en StrictMode.
+  return () => {
+    apiClient.interceptors.request.eject(requestInterceptor)
+    apiClient.interceptors.response.eject(responseInterceptor)
+  }
+}
 
 export default apiClient

@@ -1,45 +1,58 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { AuthContext } from './AuthContext'
+import { configureApiAuth } from '../api/apiClient'
 import {
   login as loginRequest,
   loginWithGoogle as loginWithGoogleRequest,
-  logout as clearStoredSession,
 } from '../services/authService'
 
-// Comparte la sesión en React; authService conserva su persistencia en localStorage.
-// Children representa los componentes que están dentro de AuthProvider, que en este caso sería App.
 function AuthProvider({ children }) {
   const [session, setSession] = useState(() => ({
     token: localStorage.getItem('token'),
     username: localStorage.getItem('username'),
     role: localStorage.getItem('role'),
   }))
+  // Permite que las solicitudes lean la sesión vigente sin esperar al siguiente render.
+  const sessionRef = useRef(session)
+  const sessionVersion = useRef(0)
 
-  // El interceptor 401 puede limpiar la sesión sin recargar si ya estamos en /login.
-  useEffect(() => {
-    const handleSessionExpired = () => {
-      setSession({ token: null, username: null, role: null })
+  const updateSession = useCallback((nextSession) => {
+    sessionRef.current = nextSession
+    sessionVersion.current += 1
+    setSession(nextSession)
+
+    for (const key of ['token', 'username', 'role']) {
+      if (nextSession[key] === null) {
+        localStorage.removeItem(key)
+      } else {
+        localStorage.setItem(key, nextSession[key])
+      }
     }
-
-    window.addEventListener('auth-session-expired', handleSessionExpired)
-    return () => window.removeEventListener('auth-session-expired', handleSessionExpired)
   }, [])
+
+  const logout = useCallback(() => {
+    updateSession({ token: null, username: null, role: null })
+  }, [updateSession])
+
+  // Configura Axios antes de que las páginas soliciten datos en sus efectos.
+  useLayoutEffect(() => configureApiAuth({
+    getSession: () => ({
+      token: sessionRef.current.token,
+      version: sessionVersion.current,
+    }),
+    onSessionExpired: logout,
+  }), [logout])
 
   const login = async (username, password) => {
     const data = await loginRequest(username, password)
-    setSession({ token: data.token, username: data.username, role: data.role })
+    updateSession({ token: data.token, username: data.username, role: data.role })
     return data
   }
 
   const loginWithGoogle = async (credential) => {
     const data = await loginWithGoogleRequest(credential)
-    setSession({ token: data.token, username: data.username, role: data.role })
+    updateSession({ token: data.token, username: data.username, role: data.role })
     return data
-  }
-
-  const logout = () => {
-    clearStoredSession()
-    setSession({ token: null, username: null, role: null })
   }
 
   return (
