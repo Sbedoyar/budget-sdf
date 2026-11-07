@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -21,6 +21,14 @@ import {
   getMovements,
 } from '../services/movementService'
 import AppSelect from '../components/AppSelect'
+import {
+  initialMovementFormState,
+  movementFormReducer,
+} from '../reducers/movementFormReducer'
+import {
+  initialMovementFiltersState,
+  movementFiltersReducer,
+} from '../reducers/movementFiltersReducer'
 import { getProducts } from '../services/productService'
 import '../styles/pages/movements.css'
 
@@ -30,14 +38,17 @@ function MovementsPage() {
   const [products, setProducts] = useState([])
   const [historyProducts, setHistoryProducts] = useState([])
 
-  const [productId, setProductId] = useState('')
-  const [type, setType] = useState('')
-  const [quantity, setQuantity] = useState('')
-  const [observation, setObservation] = useState('')
+  const [form, dispatchForm] = useReducer(
+    movementFormReducer,
+    initialMovementFormState,
+  )
+  const { productId, type, quantity, observation } = form
 
-  const [searchTerm, setSearchTerm] = useState('')
-  const [typeFilter, setTypeFilter] = useState('')
-  const [productFilter, setProductFilter] = useState('')
+  const [filters, dispatchFilters] = useReducer(
+    movementFiltersReducer,
+    initialMovementFiltersState,
+  )
+  const { searchTerm, typeFilter, productFilter } = filters
 
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
@@ -185,10 +196,7 @@ function MovementsPage() {
   }
 
   const resetForm = () => {
-    setProductId('')
-    setType('')
-    setQuantity('')
-    setObservation('')
+    dispatchForm({ type: 'RESET_FORM' })
   }
 
   const handleNewMovement = () => {
@@ -257,9 +265,7 @@ function MovementsPage() {
 
   // Limpia simultáneamente los criterios aplicados al historial.
   const clearFilters = () => {
-    setSearchTerm('')
-    setTypeFilter('')
-    setProductFilter('')
+    dispatchFilters({ type: 'RESET_FILTERS' })
   }
 
   const hasActiveFilters =
@@ -424,7 +430,7 @@ function MovementsPage() {
                 className="form-input movements-form-input"
                 value={productId}
                 onChange={(event) =>
-                  setProductId(event.target.value)
+                  dispatchForm({ type: 'SET_FIELD', field: 'productId', value: event.target.value })
                 }
                 required
               >
@@ -450,7 +456,9 @@ function MovementsPage() {
                 id="type"
                 className="form-input movements-form-input"
                 value={type}
-                onChange={(event) => setType(event.target.value)}
+                onChange={(event) =>
+                  dispatchForm({ type: 'SET_FIELD', field: 'type', value: event.target.value })
+                }
                 required
               >
                 <option value="">Selecciona un tipo</option>
@@ -472,7 +480,7 @@ function MovementsPage() {
                 value={quantity}
                 placeholder="Ej. 10"
                 onChange={(event) =>
-                  setQuantity(event.target.value)
+                  dispatchForm({ type: 'SET_FIELD', field: 'quantity', value: event.target.value })
                 }
                 required
               />
@@ -489,7 +497,7 @@ function MovementsPage() {
                 type="text"
                 value={observation}
                 onChange={(event) =>
-                  setObservation(event.target.value)
+                  dispatchForm({ type: 'SET_FIELD', field: 'observation', value: event.target.value })
                 }
                 placeholder="Ej. Compra a proveedor"
               />
@@ -593,7 +601,7 @@ function MovementsPage() {
               placeholder="Buscar producto u observación..."
               aria-label="Buscar movimientos"
               onChange={(event) =>
-                setSearchTerm(event.target.value)
+                dispatchFilters({ type: 'SET_FILTER', field: 'searchTerm', value: event.target.value })
               }
             />
           </div>
@@ -605,7 +613,7 @@ function MovementsPage() {
               value={typeFilter}
               aria-label="Filtrar por tipo"
               onChange={(event) =>
-                setTypeFilter(event.target.value)
+                dispatchFilters({ type: 'SET_FILTER', field: 'typeFilter', value: event.target.value })
               }
             >
               <option value="">Todos los tipos</option>
@@ -621,7 +629,7 @@ function MovementsPage() {
               value={productFilter}
               aria-label="Filtrar por producto"
               onChange={(event) =>
-                setProductFilter(event.target.value)
+                dispatchFilters({ type: 'SET_FILTER', field: 'productFilter', value: event.target.value })
               }
             >
               <option value="">Todos los productos</option>

@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle,
   ArrowDownRight,
@@ -27,11 +27,11 @@ import {
   getMovementReport,
 } from '../services/reportService'
 import '../styles/pages/dashboard.css'
-import { AuthContext } from '../contexts/AuthContext'
+import { useAuth } from '../hooks/useAuth'
 
 // Resume inventario, actividad reciente y alertas mediante datos combinados de varios endpoints.
 function DashboardPage() {
-  const { username: sessionUsername } = useContext(AuthContext)
+  const { username: sessionUsername } = useAuth()
   const username = sessionUsername || 'propietario'
 
   const [inventoryReport, setInventoryReport] = useState(null)

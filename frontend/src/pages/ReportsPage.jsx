@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import {
   Activity,
@@ -45,19 +45,20 @@ import {
   getMovementReport,
 } from "../services/reportService";
 import AppSelect from "../components/AppSelect";
+import {
+  initialInventoryReportFilters,
+  inventoryReportFiltersReducer,
+} from "../reducers/inventoryReportFiltersReducer";
+import {
+  emptyMovementFilters,
+  initialMovementReportFilters,
+  movementReportFiltersReducer,
+} from "../reducers/movementReportFiltersReducer";
 import { getProducts } from "../services/productService";
 
 import { exportReportsToExcel } from "../utils/reportExcelExporter";
 
 import "../styles/pages/reports.css";
-
-const EMPTY_MOVEMENT_FILTERS = {
-  period: "all",
-  from: "",
-  to: "",
-  type: "",
-  productIds: [],
-};
 
 const PERIOD_OPTIONS = [
   { value: "all", label: "Todo" },
@@ -105,20 +106,20 @@ function ReportsPage() {
   const [movementReport, setMovementReport] = useState(null);
   const [movementProductCatalog, setMovementProductCatalog] = useState([]);
 
-  const [inventorySearch, setInventorySearch] = useState("");
-
-  const [inventoryStatusFilter, setInventoryStatusFilter] = useState("");
-
-  const [productMovementSearch, setProductMovementSearch] = useState("");
-
-  const [historySearch, setHistorySearch] = useState("");
-
-  const [movementFilters, setMovementFilters] = useState(
-    EMPTY_MOVEMENT_FILTERS,
+  const [{ inventorySearch, inventoryStatusFilter }, dispatchInventoryFilters] = useReducer(
+    inventoryReportFiltersReducer,
+    initialInventoryReportFilters,
   );
-  const [appliedMovementFilters, setAppliedMovementFilters] = useState(
-    EMPTY_MOVEMENT_FILTERS,
+  const [movementFilterState, dispatchMovementFilters] = useReducer(
+    movementReportFiltersReducer,
+    initialMovementReportFilters,
   );
+  const {
+    movementFilters,
+    appliedMovementFilters,
+    productMovementSearch,
+    historySearch,
+  } = movementFilterState;
 
   const [productSelectorOpen, setProductSelectorOpen] = useState(false);
   const [productSelectorSearch, setProductSelectorSearch] = useState("");
@@ -485,12 +486,7 @@ function ReportsPage() {
       );
 
       setMovementReport(movementData);
-      setAppliedMovementFilters({
-        ...filters,
-        productIds: [...(filters.productIds || [])],
-      });
-      setProductMovementSearch("");
-      setHistorySearch("");
+      dispatchMovementFilters({ type: "APPLY_FILTERS", filters });
     } catch (error) {
       setError(
         error.response?.data?.message ||
@@ -514,7 +510,7 @@ function ReportsPage() {
     };
 
     if (period === "custom") {
-      setMovementFilters(nextFilters);
+      dispatchMovementFilters({ type: "UPDATE_DRAFT", filters: nextFilters });
       return;
     }
 
@@ -558,46 +554,25 @@ function ReportsPage() {
       };
     }
 
-    setMovementFilters(nextFilters);
+    dispatchMovementFilters({ type: "UPDATE_DRAFT", filters: nextFilters });
     applyMovementFilters(nextFilters);
   };
 
   // Agrega o quita un producto del filtro múltiple sin aplicar todavía la consulta.
   const toggleMovementProduct = (productId) => {
-    setMovementFilters((current) => {
-      const isSelected = current.productIds.some(
-        (selectedId) => String(selectedId) === String(productId),
-      );
-
-      return {
-        ...current,
-        productIds: isSelected
-          ? current.productIds.filter(
-              (selectedId) => String(selectedId) !== String(productId),
-            )
-          : [...current.productIds, productId],
-      };
-    });
+    dispatchMovementFilters({ type: "TOGGLE_PRODUCT", productId });
   };
 
   // La lista vacía representa "todos los productos" para el backend.
   const selectAllMovementProducts = () => {
-    setMovementFilters((current) => ({
-      ...current,
-      productIds: [],
-    }));
+    dispatchMovementFilters({ type: "UPDATE_DRAFT", filters: { productIds: [] } });
   };
 
   const clearMovementFilters = () => {
-    const clearedFilters = {
-      ...EMPTY_MOVEMENT_FILTERS,
-      productIds: [],
-    };
-
-    setMovementFilters(clearedFilters);
+    dispatchMovementFilters({ type: "RESET_DRAFT" });
     setProductSelectorOpen(false);
     setProductSelectorSearch("");
-    applyMovementFilters(clearedFilters);
+    applyMovementFilters(emptyMovementFilters);
   };
 
   const hasInventoryFilters = inventorySearch || inventoryStatusFilter;
@@ -698,7 +673,7 @@ function ReportsPage() {
         inventoryReport: completeInventoryReport,
         movementReport: completeMovementReport,
         productCatalog: movementProductCatalog,
-        filters: EMPTY_MOVEMENT_FILTERS,
+        filters: emptyMovementFilters,
         mode: "full",
       });
 
@@ -1082,7 +1057,13 @@ function ReportsPage() {
                   value={inventorySearch}
                   placeholder="Buscar código, producto o categoría..."
                   aria-label="Buscar en reporte de inventario"
-                  onChange={(event) => setInventorySearch(event.target.value)}
+                  onChange={(event) =>
+                    dispatchInventoryFilters({
+                      type: "SET_FILTER",
+                      field: "inventorySearch",
+                      value: event.target.value,
+                    })
+                  }
                 />
               </div>
 
@@ -1093,7 +1074,11 @@ function ReportsPage() {
                   value={inventoryStatusFilter}
                   aria-label="Filtrar inventario por estado"
                   onChange={(event) =>
-                    setInventoryStatusFilter(event.target.value)
+                    dispatchInventoryFilters({
+                      type: "SET_FILTER",
+                      field: "inventoryStatusFilter",
+                      value: event.target.value,
+                    })
                   }
                 >
                   <option value="">Todos los estados</option>
@@ -1110,11 +1095,7 @@ function ReportsPage() {
                 <button
                   type="button"
                   className="report-clear-button"
-                  onClick={() => {
-                    setInventorySearch("");
-
-                    setInventoryStatusFilter("");
-                  }}
+                  onClick={() => dispatchInventoryFilters({ type: "RESET_FILTERS" })}
                 >
                   <X size={14} />
                   Limpiar
@@ -1313,11 +1294,10 @@ function ReportsPage() {
                     type="date"
                     value={movementFilters.from}
                     onChange={(event) =>
-                      setMovementFilters((current) => ({
-                        ...current,
-                        period: "custom",
-                        from: event.target.value,
-                      }))
+                      dispatchMovementFilters({
+                        type: "UPDATE_DRAFT",
+                        filters: { period: "custom", from: event.target.value },
+                      })
                     }
                   />
                 </div>
@@ -1331,11 +1311,10 @@ function ReportsPage() {
                     type="date"
                     value={movementFilters.to}
                     onChange={(event) =>
-                      setMovementFilters((current) => ({
-                        ...current,
-                        period: "custom",
-                        to: event.target.value,
-                      }))
+                      dispatchMovementFilters({
+                        type: "UPDATE_DRAFT",
+                        filters: { period: "custom", to: event.target.value },
+                      })
                     }
                   />
                 </div>
@@ -1348,10 +1327,10 @@ function ReportsPage() {
                   <AppSelect
                     value={movementFilters.type}
                     onChange={(event) =>
-                      setMovementFilters((current) => ({
-                        ...current,
-                        type: event.target.value,
-                      }))
+                      dispatchMovementFilters({
+                        type: "UPDATE_DRAFT",
+                        filters: { type: event.target.value },
+                      })
                     }
                   >
                     <option value="">Todos los tipos</option>
@@ -1752,7 +1731,11 @@ function ReportsPage() {
                   placeholder="Buscar producto o código..."
                   aria-label="Buscar resumen de movimientos por producto"
                   onChange={(event) =>
-                    setProductMovementSearch(event.target.value)
+                    dispatchMovementFilters({
+                      type: "SET_RESULT_SEARCH",
+                      field: "productMovementSearch",
+                      value: event.target.value,
+                    })
                   }
                 />
               </div>
@@ -1761,7 +1744,13 @@ function ReportsPage() {
                 <button
                   type="button"
                   className="report-clear-button"
-                  onClick={() => setProductMovementSearch("")}
+                  onClick={() =>
+                    dispatchMovementFilters({
+                      type: "SET_RESULT_SEARCH",
+                      field: "productMovementSearch",
+                      value: "",
+                    })
+                  }
                 >
                   <X size={14} />
                   Limpiar
@@ -1881,7 +1870,13 @@ function ReportsPage() {
                   value={historySearch}
                   placeholder="Buscar producto, código u observación..."
                   aria-label="Buscar historial de movimientos"
-                  onChange={(event) => setHistorySearch(event.target.value)}
+                  onChange={(event) =>
+                    dispatchMovementFilters({
+                      type: "SET_RESULT_SEARCH",
+                      field: "historySearch",
+                      value: event.target.value,
+                    })
+                  }
                 />
               </div>
 
@@ -1889,7 +1884,13 @@ function ReportsPage() {
                 <button
                   type="button"
                   className="report-clear-button"
-                  onClick={() => setHistorySearch("")}
+                  onClick={() =>
+                    dispatchMovementFilters({
+                      type: "SET_RESULT_SEARCH",
+                      field: "historySearch",
+                      value: "",
+                    })
+                  }
                 >
                   <X size={14} />
                   Limpiar
