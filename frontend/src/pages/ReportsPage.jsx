@@ -7,7 +7,6 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   BarChart3,
-  Boxes,
   CalendarDays,
   Check,
   CheckCircle2,
@@ -19,10 +18,8 @@ import {
   Download,
   Layers3,
   Package,
-  PackageCheck,
   PackageX,
   RefreshCw,
-  Scale,
   Search,
   Warehouse,
   X,
@@ -46,6 +43,8 @@ import {
   getMovementReport,
 } from "../services/reportService";
 import AppSelect from "../components/AppSelect";
+import InventoryReportSummary from "../components/reports/InventoryReportSummary";
+import MovementReportSummary from "../components/reports/MovementReportSummary";
 import {
   initialInventoryReportFilters,
   inventoryReportFiltersReducer,
@@ -846,79 +845,7 @@ function ReportsPage() {
             </span>
           </div>
 
-          <div className="report-summary-grid report-inventory-summary">
-            <article className="report-summary-card report-summary-products">
-              <div className="report-summary-icon">
-                <Package size={20} />
-              </div>
-
-              <div>
-                <span>Total productos</span>
-
-                <strong>{inventoryReport.summary.totalProducts}</strong>
-
-                <small>Registrados</small>
-              </div>
-            </article>
-
-            <article className="report-summary-card report-summary-units">
-              <div className="report-summary-icon">
-                <Boxes size={20} />
-              </div>
-
-              <div>
-                <span>Unidades en stock</span>
-
-                <strong>{inventoryReport.summary.totalUnitsInStock}</strong>
-
-                <small>Disponibles</small>
-              </div>
-            </article>
-
-            <article className="report-summary-card report-summary-low">
-              <div className="report-summary-icon">
-                <AlertTriangle size={20} />
-              </div>
-
-              <div>
-                <span>Stock bajo</span>
-
-                <strong>{inventoryReport.summary.productsWithLowStock}</strong>
-
-                <small>Requieren atención</small>
-              </div>
-            </article>
-
-            <article className="report-summary-card report-summary-out">
-              <div className="report-summary-icon">
-                <PackageX size={20} />
-              </div>
-
-              <div>
-                <span>Sin stock</span>
-
-                <strong>{inventoryReport.summary.productsOutOfStock}</strong>
-
-                <small>Sin unidades</small>
-              </div>
-            </article>
-
-            <article className="report-summary-card report-summary-normal">
-              <div className="report-summary-icon">
-                <PackageCheck size={20} />
-              </div>
-
-              <div>
-                <span>Stock normal</span>
-
-                <strong>
-                  {inventoryReport.summary.productsWithNormalStock}
-                </strong>
-
-                <small>Sin alertas</small>
-              </div>
-            </article>
-          </div>
+          <InventoryReportSummary summary={inventoryReport.summary} />
 
           <div className="report-visual-grid">
             <article className="report-chart-card">
@@ -1570,63 +1497,7 @@ function ReportsPage() {
             </div>
           )}
 
-          <div className="report-summary-grid report-movement-summary">
-            <article className="report-summary-card report-summary-movements">
-              <div className="report-summary-icon">
-                <History size={20} />
-              </div>
-
-              <div>
-                <span>Movimientos</span>
-
-                <strong>{movementReport.summary.totalMovements}</strong>
-
-                <small>En la vista actual</small>
-              </div>
-            </article>
-
-            <article className="report-summary-card report-summary-inbound">
-              <div className="report-summary-icon">
-                <ArrowDownToLine size={20} />
-              </div>
-
-              <div>
-                <span>Total entradas</span>
-
-                <strong>{movementReport.summary.totalInbound}</strong>
-
-                <small>{movementReport.summary.inboundUnits} unidades</small>
-              </div>
-            </article>
-
-            <article className="report-summary-card report-summary-outbound">
-              <div className="report-summary-icon">
-                <ArrowUpFromLine size={20} />
-              </div>
-
-              <div>
-                <span>Total salidas</span>
-
-                <strong>{movementReport.summary.totalOutbound}</strong>
-
-                <small>{movementReport.summary.outboundUnits} unidades</small>
-              </div>
-            </article>
-
-            <article className="report-summary-card report-summary-balance">
-              <div className="report-summary-icon">
-                <Scale size={20} />
-              </div>
-
-              <div>
-                <span>Balance</span>
-
-                <strong>{movementReport.summary.unitBalance}</strong>
-
-                <small>Unidades netas</small>
-              </div>
-            </article>
-          </div>
+          <MovementReportSummary summary={movementReport.summary} />
 
           <article className="report-chart-card report-movement-chart-card">
             <div className="report-card-heading">
