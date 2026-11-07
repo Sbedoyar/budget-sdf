@@ -1,3 +1,4 @@
+import { getErrorMessage } from '../utils/getErrorMessage'
 import { useEffect, useRef, useState } from 'react'
 import { GoogleLogin } from '@react-oauth/google'
 import { useNavigate } from 'react-router-dom'
@@ -50,8 +51,7 @@ function LoginPage() {
       navigate('/dashboard')
     } catch (error) {
       setError(
-        error.response?.data?.message ||
-          'No fue posible iniciar sesión',
+        getErrorMessage(error, 'No fue posible iniciar sesión'),
       )
     } finally {
       setLoading(false)
@@ -84,8 +84,7 @@ function LoginPage() {
       setGoogleMessage('')
 
       setError(
-        error.response?.data?.message ||
-          'No fue posible iniciar sesión con Google',
+        getErrorMessage(error, 'No fue posible iniciar sesión con Google'),
       )
     }
   }

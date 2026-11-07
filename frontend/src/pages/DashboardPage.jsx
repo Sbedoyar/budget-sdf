@@ -1,3 +1,4 @@
+import { getErrorMessage } from '../utils/getErrorMessage'
 import { useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle,
@@ -61,8 +62,7 @@ function DashboardPage() {
       } catch (error) {
         if (!cancelled) {
           setError(
-            error.response?.data?.message ||
-              'No fue posible cargar el dashboard',
+            getErrorMessage(error, 'No fue posible cargar el dashboard'),
           )
         }
       } finally {

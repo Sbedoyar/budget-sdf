@@ -1,3 +1,4 @@
+import { getErrorMessage } from '../utils/getErrorMessage'
 import { useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle,
@@ -42,8 +43,7 @@ function AlertsPage() {
       setAlerts(data)
     } catch (error) {
       setError(
-        error.response?.data?.message ||
-          'No fue posible cargar las alertas',
+        getErrorMessage(error, 'No fue posible cargar las alertas'),
       )
     } finally {
       setLoading(false)
@@ -65,8 +65,7 @@ function AlertsPage() {
       } catch (error) {
         if (!cancelled) {
           setError(
-            error.response?.data?.message ||
-              'No fue posible cargar las alertas',
+            getErrorMessage(error, 'No fue posible cargar las alertas'),
           )
         }
       } finally {

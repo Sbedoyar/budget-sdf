@@ -1,3 +1,4 @@
+import { getErrorMessage } from '../utils/getErrorMessage'
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import {
   AlertTriangle,
@@ -68,8 +69,7 @@ function ProductsPage() {
       } catch (error) {
         if (!cancelled) {
           setError(
-            error.response?.data?.message ||
-              'No fue posible cargar los datos',
+            getErrorMessage(error, 'No fue posible cargar los datos'),
           )
         }
       } finally {
@@ -246,8 +246,7 @@ function ProductsPage() {
       await refreshProducts()
     } catch (error) {
       setError(
-        error.response?.data?.message ||
-          'No fue posible guardar el producto',
+        getErrorMessage(error, 'No fue posible guardar el producto'),
       )
     } finally {
       setSaving(false)
@@ -296,8 +295,7 @@ function ProductsPage() {
       await refreshProducts()
     } catch (error) {
       setError(
-        error.response?.data?.message ||
-          'No fue posible eliminar el producto',
+        getErrorMessage(error, 'No fue posible eliminar el producto'),
       )
 
       setProductToDelete(null)
@@ -319,8 +317,7 @@ function ProductsPage() {
       await refreshProducts()
     } catch (error) {
       setError(
-        error.response?.data?.message ||
-          'No fue posible reactivar el producto',
+        getErrorMessage(error, 'No fue posible reactivar el producto'),
       )
     } finally {
       setReactivatingId(null)
