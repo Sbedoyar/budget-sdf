@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../utils/getErrorMessage";
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import {
@@ -166,8 +167,7 @@ function ReportsPage() {
       } catch (error) {
         if (!cancelled) {
           setError(
-            error.response?.data?.message ||
-              "No fue posible cargar los reportes",
+            getErrorMessage(error, "No fue posible cargar los reportes"),
           );
         }
       } finally {
@@ -239,8 +239,7 @@ function ReportsPage() {
       setMovementProductCatalog(productCatalogData);
     } catch (error) {
       setError(
-        error.response?.data?.message ||
-          "No fue posible actualizar los reportes",
+        getErrorMessage(error, "No fue posible actualizar los reportes"),
       );
     } finally {
       setRefreshing(false);
@@ -489,8 +488,7 @@ function ReportsPage() {
       dispatchMovementFilters({ type: "APPLY_FILTERS", filters });
     } catch (error) {
       setError(
-        error.response?.data?.message ||
-          "No fue posible aplicar los filtros del reporte",
+        getErrorMessage(error, "No fue posible aplicar los filtros del reporte"),
       );
     } finally {
       setFilteringMovements(false);
@@ -679,10 +677,19 @@ function ReportsPage() {
 
       setExportMessage("El reporte completo se exportó correctamente a Excel.");
     } catch (exportError) {
+      const exportMessage = exportError?.message;
+      const readableMessage =
+        typeof exportMessage === "string" &&
+        exportMessage.trim() &&
+        exportMessage.trim().toLowerCase() !== "network error";
+
       setError(
-        exportError.response?.data?.message ||
-          exportError.message ||
-          "No fue posible generar el archivo Excel",
+        getErrorMessage(
+          exportError,
+          readableMessage
+            ? exportMessage
+            : "No fue posible generar el archivo Excel",
+        ),
       );
     } finally {
       setExportingMode("");

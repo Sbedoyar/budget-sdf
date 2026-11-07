@@ -1,3 +1,4 @@
+import { getErrorMessage } from '../utils/getErrorMessage'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   CheckCircle2,
@@ -48,8 +49,7 @@ function CategoriesPage() {
       } catch (error) {
         if (!cancelled) {
           setError(
-            error.response?.data?.message ||
-              'No fue posible cargar las categorías',
+            getErrorMessage(error, 'No fue posible cargar las categorías'),
           )
         }
       } finally {
@@ -132,8 +132,7 @@ function CategoriesPage() {
       await refreshCategories()
     } catch (error) {
       setError(
-        error.response?.data?.message ||
-          'No fue posible guardar la categoría',
+        getErrorMessage(error, 'No fue posible guardar la categoría'),
       )
     } finally {
       setSaving(false)
@@ -185,8 +184,7 @@ function CategoriesPage() {
       await refreshCategories()
     } catch (error) {
       setError(
-        error.response?.data?.message ||
-          'No fue posible eliminar la categoría',
+        getErrorMessage(error, 'No fue posible eliminar la categoría'),
       )
 
       setCategoryToDelete(null)

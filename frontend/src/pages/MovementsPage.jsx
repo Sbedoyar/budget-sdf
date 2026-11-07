@@ -1,3 +1,4 @@
+import { getErrorMessage } from '../utils/getErrorMessage'
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import {
   ArrowDownToLine,
@@ -81,8 +82,7 @@ function MovementsPage() {
       } catch (error) {
         if (!cancelled) {
           setError(
-            error.response?.data?.message ||
-              'No fue posible cargar los datos',
+            getErrorMessage(error, 'No fue posible cargar los datos'),
           )
         }
       } finally {
@@ -255,8 +255,7 @@ function MovementsPage() {
       await refreshData()
     } catch (error) {
       setError(
-        error.response?.data?.message ||
-          'No fue posible registrar el movimiento',
+        getErrorMessage(error, 'No fue posible registrar el movimiento'),
       )
     } finally {
       setSaving(false)
