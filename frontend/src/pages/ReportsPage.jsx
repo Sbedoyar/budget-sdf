@@ -5,7 +5,6 @@ import {
   Activity,
   AlertTriangle,
   ArrowDownToLine,
-  ArrowUpFromLine,
   BarChart3,
   CalendarDays,
   Check,
@@ -45,6 +44,9 @@ import {
 import AppSelect from "../components/AppSelect";
 import InventoryReportSummary from "../components/reports/InventoryReportSummary";
 import MovementReportSummary from "../components/reports/MovementReportSummary";
+import InventoryReportTable from "../components/reports/InventoryReportTable";
+import MovementProductReportTable from "../components/reports/MovementProductReportTable";
+import MovementHistoryReportTable from "../components/reports/MovementHistoryReportTable";
 import {
   initialInventoryReportFilters,
   inventoryReportFiltersReducer,
@@ -1044,98 +1046,13 @@ function ReportsPage() {
               </div>
             )}
 
-            <div className="report-table-container">
-              {filteredInventoryProducts.length === 0 ? (
-                <div className="report-empty-state">
-                  <Package size={25} />
-
-                  <h4>No encontramos productos</h4>
-
-                  <p>
-                    Prueba cambiando el término de búsqueda o el filtro
-                    seleccionado.
-                  </p>
-                </div>
-              ) : (
-                <table className="report-table">
-                  <thead>
-                    <tr>
-                      <th>Producto</th>
-
-                      <th>Categoría</th>
-
-                      <th>Unidad</th>
-
-                      <th>Stock actual</th>
-
-                      <th>Stock mínimo</th>
-
-                      <th>Estado</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {filteredInventoryProducts.map((product) => (
-                      <tr key={product.productId}>
-                        <td>
-                          <div className="report-product-cell">
-                            <div className="report-product-icon">
-                              <Package size={15} />
-                            </div>
-
-                            <div>
-                              <strong>{product.name}</strong>
-
-                              <span>{product.code}</span>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td>{product.category}</td>
-
-                        <td>{product.unitOfMeasure}</td>
-
-                        <td>
-                          <strong
-                            className={
-                              product.stockStatus === "OUT_OF_STOCK"
-                                ? "report-stock-value report-stock-out"
-                                : product.stockStatus === "LOW_STOCK"
-                                  ? "report-stock-value report-stock-low"
-                                  : "report-stock-value report-stock-normal"
-                            }
-                          >
-                            {product.currentStock}
-                          </strong>
-                        </td>
-
-                        <td>{product.minimumStock}</td>
-
-                        <td>
-                          <span
-                            className={getStockStatusClass(product.stockStatus)}
-                          >
-                            {product.stockStatus === "NORMAL" && (
-                              <CheckCircle2 size={12} />
-                            )}
-
-                            {product.stockStatus === "LOW_STOCK" && (
-                              <AlertTriangle size={12} />
-                            )}
-
-                            {product.stockStatus === "OUT_OF_STOCK" && (
-                              <PackageX size={12} />
-                            )}
-
-                            {getStockStatusLabel(product.stockStatus)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+            <InventoryReportTable
+              products={filteredInventoryProducts.map((product) => ({
+                ...product,
+                stockStatusClass: getStockStatusClass(product.stockStatus),
+                stockStatusLabel: getStockStatusLabel(product.stockStatus),
+              }))}
+            />
           </div>
         </section>
       )}
@@ -1636,91 +1553,10 @@ function ReportsPage() {
               )}
             </div>
 
-            <div className="report-table-container">
-              {filteredMovementProducts.length === 0 ? (
-                <div className="report-empty-state">
-                  <Package size={25} />
-
-                  <h4>No encontramos productos</h4>
-
-                  <p>
-                    {movementReport.byProduct.length === 0
-                      ? "No hay productos con movimientos para los filtros seleccionados."
-                      : "Prueba con otro código o nombre de producto."}
-                  </p>
-                </div>
-              ) : (
-                <table className="report-table report-movement-product-table">
-                  <thead>
-                    <tr>
-                      <th>Producto</th>
-
-                      <th>Movimientos</th>
-
-                      <th>Entradas</th>
-
-                      <th>Salidas</th>
-
-                      <th>Unidades entrada</th>
-
-                      <th>Unidades salida</th>
-
-                      <th>Balance</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {filteredMovementProducts.map((product) => (
-                      <tr key={product.productId}>
-                        <td>
-                          <div className="report-product-cell">
-                            <div className="report-product-icon">
-                              <Package size={15} />
-                            </div>
-
-                            <div>
-                              <strong>{product.name}</strong>
-
-                              <span>{product.code}</span>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td>{product.totalMovements}</td>
-
-                        <td>
-                          <span className="report-number-entry">
-                            {product.totalInbound}
-                          </span>
-                        </td>
-
-                        <td>
-                          <span className="report-number-exit">
-                            {product.totalOutbound}
-                          </span>
-                        </td>
-
-                        <td>{product.inboundUnits}</td>
-
-                        <td>{product.outboundUnits}</td>
-
-                        <td>
-                          <strong
-                            className={
-                              product.unitBalance < 0
-                                ? "report-balance report-balance-negative"
-                                : "report-balance report-balance-positive"
-                            }
-                          >
-                            {product.unitBalance}
-                          </strong>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+            <MovementProductReportTable
+              products={filteredMovementProducts}
+              hasProductMovements={movementReport.byProduct.length > 0}
+            />
           </div>
 
           <div className="report-table-panel report-history-panel">
@@ -1783,111 +1619,13 @@ function ReportsPage() {
               </div>
             )}
 
-            <div className="report-table-container">
-              {filteredMovementHistory.length === 0 ? (
-                <div className="report-empty-state">
-                  <History size={25} />
-
-                  <h4>No encontramos movimientos</h4>
-
-                  <p>
-                    {movementReport.movements.length === 0
-                      ? "No existen movimientos para los filtros seleccionados."
-                      : "Prueba cambiando el término de búsqueda."}
-                  </p>
-                </div>
-              ) : (
-                <table className="report-table report-history-table">
-                  <thead>
-                    <tr>
-                      <th>Fecha</th>
-
-                      <th>Producto</th>
-
-                      <th>Tipo</th>
-
-                      <th>Cantidad</th>
-
-                      <th>Stock resultante</th>
-
-                      <th>Observación</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {filteredMovementHistory.map((movement) => (
-                      <tr key={movement.id}>
-                        <td>
-                          <div className="report-date-cell">
-                            <CalendarDays size={14} />
-
-                            <span>{formatMovementDate(movement.date)}</span>
-                          </div>
-                        </td>
-
-                        <td>
-                          <div className="report-product-cell">
-                            <div className="report-product-icon">
-                              <Package size={15} />
-                            </div>
-
-                            <div>
-                              <strong>{movement.productName}</strong>
-
-                              <span>{movement.productCode}</span>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td>
-                          <span
-                            className={
-                              movement.type === "ENTRADA"
-                                ? "report-movement-badge report-movement-entry"
-                                : "report-movement-badge report-movement-exit"
-                            }
-                          >
-                            {movement.type === "ENTRADA" ? (
-                              <ArrowDownToLine size={12} />
-                            ) : (
-                              <ArrowUpFromLine size={12} />
-                            )}
-
-                            {movement.type === "ENTRADA" ? "Entrada" : "Salida"}
-                          </span>
-                        </td>
-
-                        <td>
-                          <strong
-                            className={
-                              movement.type === "ENTRADA"
-                                ? "report-number-entry"
-                                : "report-number-exit"
-                            }
-                          >
-                            {movement.type === "ENTRADA" ? "+" : "-"}
-
-                            {movement.quantity}
-                          </strong>
-                        </td>
-
-                        <td>
-                          <span className="report-stock-result">
-                            {movement.resultingStock}
-                          </span>
-                        </td>
-
-                        <td>
-                          <span className="report-observation">
-                            {movement.observation || "Sin observación"}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+            <MovementHistoryReportTable
+              movements={filteredMovementHistory.map((movement) => ({
+                ...movement,
+                formattedDate: formatMovementDate(movement.date),
+              }))}
+              hasMovements={movementReport.movements.length > 0}
+            />
           </div>
         </section>
       )}
