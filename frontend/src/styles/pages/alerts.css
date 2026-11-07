@@ -397,8 +397,7 @@
     0 0 0 3px rgba(16, 185, 129, 0.10);
 }
 
-.alerts-search input,
-.alerts-filter select {
+.alerts-search input {
   width: 100%;
   height: 39px;
 
@@ -414,10 +413,6 @@
 
 .alerts-search input::placeholder {
   color: #94a3b8;
-}
-
-.alerts-filter select {
-  cursor: pointer;
 }
 
 .alerts-clear-filters {

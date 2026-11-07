@@ -587,8 +587,7 @@
     0 0 0 3px rgba(16, 185, 129, 0.10);
 }
 
-.products-search input,
-.products-filter select {
+.products-search input {
   width: 100%;
   height: 39px;
 
@@ -604,10 +603,6 @@
 
 .products-search input::placeholder {
   color: #94a3b8;
-}
-
-.products-filter select {
-  cursor: pointer;
 }
 
 .products-clear-filters {
