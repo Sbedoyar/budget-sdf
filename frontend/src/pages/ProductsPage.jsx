@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import {
   AlertTriangle,
   Boxes,
@@ -17,6 +17,8 @@ import {
   X,
 } from 'lucide-react'
 import AppSelect from '../components/AppSelect'
+import { initialProductFormState, productFormReducer } from '../reducers/productFormReducer'
+import { initialProductFiltersState, productFiltersReducer } from '../reducers/productFiltersReducer'
 import { getCategories } from '../services/categoryService'
 import {
   createProduct,
@@ -32,19 +34,12 @@ function ProductsPage() {
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
 
-  const [code, setCode] = useState('')
-  const [name, setName] = useState('')
-  const [categoryId, setCategoryId] = useState('')
-  const [unitOfMeasure, setUnitOfMeasure] = useState('')
-  const [minimumStock, setMinimumStock] = useState('')
-
-  const [editingId, setEditingId] = useState(null)
+  const [form, dispatchForm] = useReducer(productFormReducer, initialProductFormState)
+  const { code, name, categoryId, unitOfMeasure, minimumStock, editingId } = form
   const [productToDelete, setProductToDelete] = useState(null)
 
-  const [searchTerm, setSearchTerm] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState('')
-  const [stockFilter, setStockFilter] = useState('')
-  const [activityFilter, setActivityFilter] = useState('ACTIVE')
+  const [filters, dispatchFilters] = useReducer(productFiltersReducer, initialProductFiltersState)
+  const { searchTerm, categoryFilter, stockFilter, activityFilter } = filters
 
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
@@ -188,12 +183,7 @@ function ProductsPage() {
   }
 
   const resetForm = () => {
-    setCode('')
-    setName('')
-    setCategoryId('')
-    setUnitOfMeasure('')
-    setMinimumStock('')
-    setEditingId(null)
+    dispatchForm({ type: 'RESET_FORM' })
   }
 
   const focusForm = () => {
@@ -265,12 +255,7 @@ function ProductsPage() {
   }
 
   const handleEdit = (product) => {
-    setEditingId(product.id)
-    setCode(product.code)
-    setName(product.name)
-    setCategoryId(String(product.categoryId))
-    setUnitOfMeasure(product.unitOfMeasure)
-    setMinimumStock(String(product.minimumStock))
+    dispatchForm({ type: 'LOAD_PRODUCT', product })
 
     clearFeedback()
     focusForm()
@@ -344,10 +329,7 @@ function ProductsPage() {
 
   // Restablece simultáneamente la búsqueda y los filtros activos.
   const clearFilters = () => {
-    setSearchTerm('')
-    setCategoryFilter('')
-    setStockFilter('')
-    setActivityFilter('ACTIVE')
+    dispatchFilters({ type: 'RESET_FILTERS' })
   }
 
   const hasActiveFilters =
@@ -505,7 +487,7 @@ function ProductsPage() {
                 type="text"
                 placeholder="Ej. P001"
                 value={code}
-                onChange={(event) => setCode(event.target.value)}
+                onChange={(event) => dispatchForm({ type: 'SET_FIELD', field: 'code', value: event.target.value })}
                 required
               />
             </div>
@@ -521,7 +503,7 @@ function ProductsPage() {
                 type="text"
                 placeholder="Ej. Coca Cola 1.5L"
                 value={name}
-                onChange={(event) => setName(event.target.value)}
+                onChange={(event) => dispatchForm({ type: 'SET_FIELD', field: 'name', value: event.target.value })}
                 required
               />
             </div>
@@ -535,7 +517,7 @@ function ProductsPage() {
                 id="category"
                 className="form-input products-form-input"
                 value={categoryId}
-                onChange={(event) => setCategoryId(event.target.value)}
+                onChange={(event) => dispatchForm({ type: 'SET_FIELD', field: 'categoryId', value: event.target.value })}
                 required
               >
                 <option value="">Selecciona una categoría</option>
@@ -566,7 +548,7 @@ function ProductsPage() {
                 placeholder="Ej. Unidad, Caja, Paquete"
                 value={unitOfMeasure}
                 onChange={(event) =>
-                  setUnitOfMeasure(event.target.value)
+                  dispatchForm({ type: 'SET_FIELD', field: 'unitOfMeasure', value: event.target.value })
                 }
                 required
               />
@@ -588,7 +570,7 @@ function ProductsPage() {
                 placeholder="Ej. 5"
                 value={minimumStock}
                 onChange={(event) =>
-                  setMinimumStock(event.target.value)
+                  dispatchForm({ type: 'SET_FIELD', field: 'minimumStock', value: event.target.value })
                 }
                 required
               />
@@ -658,7 +640,7 @@ function ProductsPage() {
               placeholder="Buscar por código, nombre o categoría..."
               aria-label="Buscar productos"
               onChange={(event) =>
-                setSearchTerm(event.target.value)
+                dispatchFilters({ type: 'SET_FILTER', field: 'searchTerm', value: event.target.value })
               }
             />
           </div>
@@ -670,7 +652,7 @@ function ProductsPage() {
               value={categoryFilter}
               aria-label="Filtrar por categoría"
               onChange={(event) =>
-                setCategoryFilter(event.target.value)
+                dispatchFilters({ type: 'SET_FILTER', field: 'categoryFilter', value: event.target.value })
               }
             >
               <option value="">Todas las categorías</option>
@@ -693,7 +675,7 @@ function ProductsPage() {
               value={stockFilter}
               aria-label="Filtrar por estado de stock"
               onChange={(event) =>
-                setStockFilter(event.target.value)
+                dispatchFilters({ type: 'SET_FILTER', field: 'stockFilter', value: event.target.value })
               }
             >
               <option value="">Todos los estados</option>
@@ -710,7 +692,7 @@ function ProductsPage() {
               value={activityFilter}
               aria-label="Filtrar por estado del producto"
               onChange={(event) =>
-                setActivityFilter(event.target.value)
+                dispatchFilters({ type: 'SET_FILTER', field: 'activityFilter', value: event.target.value })
               }
             >
               <option value="ACTIVE">Productos activos</option>
