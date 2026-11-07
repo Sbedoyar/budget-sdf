@@ -262,21 +262,6 @@
    MENSAJE DE ERROR
    ========================================================= */
 
-.alerts-feedback {
-  display: flex;
-  align-items: center;
-
-  gap: 9px;
-
-  margin-bottom: 20px;
-  padding: 11px 14px;
-
-  border-radius: 11px;
-
-  font-size: 12px;
-  font-weight: 600;
-}
-
 .alerts-feedback-error {
   border: 1px solid #fecaca;
 

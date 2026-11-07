@@ -192,6 +192,24 @@
    MENSAJES DEL SISTEMA
    ========================================================= */
 
+.alerts-feedback,
+.categories-feedback,
+.movements-feedback,
+.products-feedback {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  margin-bottom: 20px;
+  padding: 11px 14px;
+
+  border-radius: 11px;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .message-success {
   margin-top: 16px;
 

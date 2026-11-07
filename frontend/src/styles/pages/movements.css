@@ -246,21 +246,6 @@
    RETROALIMENTACIÓN
    ========================================================= */
 
-.movements-feedback {
-  display: flex;
-  align-items: center;
-
-  gap: 9px;
-
-  margin-bottom: 20px;
-  padding: 11px 14px;
-
-  border-radius: 11px;
-
-  font-size: 12px;
-  font-weight: 600;
-}
-
 .movements-feedback-success {
   border: 1px solid #a7e8c2;
 
