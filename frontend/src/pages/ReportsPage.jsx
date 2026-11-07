@@ -12,24 +12,10 @@ import {
   FileSpreadsheet,
   History,
   Download,
-  Layers3,
   PackageX,
   RefreshCw,
   Warehouse,
 } from "lucide-react";
-
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 
 import {
   getInventoryReport,
@@ -39,6 +25,8 @@ import InventoryReportFilters from "../components/reports/InventoryReportFilters
 import MovementReportFilters from "../components/reports/MovementReportFilters";
 import ReportResultSearch from "../components/reports/ReportResultSearch";
 import InventoryReportSummary from "../components/reports/InventoryReportSummary";
+import InventoryStockChart from "../components/reports/InventoryStockChart";
+import MovementUnitsChart from "../components/reports/MovementUnitsChart";
 import MovementReportSummary from "../components/reports/MovementReportSummary";
 import InventoryReportTable from "../components/reports/InventoryReportTable";
 import MovementProductReportTable from "../components/reports/MovementProductReportTable";
@@ -846,64 +834,10 @@ function ReportsPage() {
           <InventoryReportSummary summary={inventoryReport.summary} />
 
           <div className="report-visual-grid">
-            <article className="report-chart-card">
-              <div className="report-card-heading">
-                <div>
-                  <h4>Distribución del inventario</h4>
-
-                  <p>Productos agrupados por estado de stock.</p>
-                </div>
-
-                <Layers3 size={19} />
-              </div>
-
-              <div className="report-donut-layout">
-                <div className="report-donut">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={inventoryStatusData}
-                        dataKey="value"
-                        nameKey="name"
-                        innerRadius={62}
-                        outerRadius={86}
-                        paddingAngle={3}
-                        stroke="none"
-                      >
-                        {inventoryStatusData.map((item) => (
-                          <Cell key={item.name} fill={item.color} />
-                        ))}
-                      </Pie>
-
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-
-                  <div className="report-donut-center">
-                    <strong>{inventoryReport.summary.totalProducts}</strong>
-
-                    <span>productos</span>
-                  </div>
-                </div>
-
-                <div className="report-donut-legend">
-                  {inventoryStatusData.map((item) => (
-                    <div className="report-donut-row" key={item.name}>
-                      <div>
-                        <span
-                          className="report-legend-dot"
-                          style={{ background: item.color }}
-                        />
-
-                        <span>{item.name}</span>
-                      </div>
-
-                      <strong>{item.value}</strong>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </article>
+            <InventoryStockChart
+              data={inventoryStatusData}
+              totalProducts={inventoryReport.summary.totalProducts}
+            />
 
             <article className="report-health-card">
               <div className="report-card-heading">
@@ -1087,87 +1021,10 @@ function ReportsPage() {
 
           <MovementReportSummary summary={movementReport.summary} />
 
-          <article className="report-chart-card report-movement-chart-card">
-            <div className="report-card-heading">
-              <div>
-                <h4>Unidades por producto</h4>
-
-                <p>
-                  Comparación de unidades ingresadas y retiradas en los
-                  productos con mayor actividad.
-                </p>
-              </div>
-
-              <BarChart3 size={19} />
-            </div>
-
-            {movementChartData.length === 0 ? (
-              <div className="report-empty-state report-chart-empty">
-                <BarChart3 size={25} />
-
-                <h4>Sin datos para graficar</h4>
-
-                <p>
-                  {hasAppliedMovementFilters
-                    ? "No hay movimientos para los filtros seleccionados."
-                    : "No hay movimientos registrados por producto."}
-                </p>
-              </div>
-            ) : (
-              <div className="report-bar-chart">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={movementChartData}
-                    margin={{
-                      top: 10,
-
-                      right: 10,
-
-                      left: -15,
-
-                      bottom: 5,
-                    }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                      stroke="#dce8e2"
-                    />
-
-                    <XAxis
-                      dataKey="name"
-                      tick={{ fontSize: 10, fill: "#64748b" }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-
-                    <YAxis
-                      allowDecimals={false}
-                      tick={{ fontSize: 10, fill: "#64748b" }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-
-                    <Tooltip />
-
-                    <Bar
-                      dataKey="entradas"
-                      name="Entradas"
-                      fill="#10b981"
-                      radius={[5, 5, 0, 0]}
-                    />
-
-                    <Bar
-                      dataKey="salidas"
-                      name="Salidas"
-                      fill="#ef4444"
-                      radius={[5, 5, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </article>
+          <MovementUnitsChart
+            data={movementChartData}
+            hasAppliedFilters={hasAppliedMovementFilters}
+          />
 
           <div className="report-table-panel">
             <div className="report-table-heading">
