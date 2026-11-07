@@ -1,14 +1,10 @@
+import { getErrorMessage } from "../utils/getErrorMessage";
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import {
   Activity,
   AlertTriangle,
-  ArrowDownToLine,
-  ArrowUpFromLine,
   BarChart3,
-  Boxes,
-  CalendarDays,
-  Check,
   CheckCircle2,
   ChevronDown,
   CircleAlert,
@@ -16,35 +12,25 @@ import {
   FileSpreadsheet,
   History,
   Download,
-  Layers3,
-  Package,
-  PackageCheck,
   PackageX,
   RefreshCw,
-  Scale,
-  Search,
   Warehouse,
-  X,
 } from "lucide-react";
-
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 
 import {
   getInventoryReport,
   getMovementReport,
 } from "../services/reportService";
-import AppSelect from "../components/AppSelect";
+import InventoryReportFilters from "../components/reports/InventoryReportFilters";
+import MovementReportFilters from "../components/reports/MovementReportFilters";
+import ReportResultSearch from "../components/reports/ReportResultSearch";
+import InventoryReportSummary from "../components/reports/InventoryReportSummary";
+import InventoryStockChart from "../components/reports/InventoryStockChart";
+import MovementUnitsChart from "../components/reports/MovementUnitsChart";
+import MovementReportSummary from "../components/reports/MovementReportSummary";
+import InventoryReportTable from "../components/reports/InventoryReportTable";
+import MovementProductReportTable from "../components/reports/MovementProductReportTable";
+import MovementHistoryReportTable from "../components/reports/MovementHistoryReportTable";
 import {
   initialInventoryReportFilters,
   inventoryReportFiltersReducer,
@@ -166,8 +152,7 @@ function ReportsPage() {
       } catch (error) {
         if (!cancelled) {
           setError(
-            error.response?.data?.message ||
-              "No fue posible cargar los reportes",
+            getErrorMessage(error, "No fue posible cargar los reportes"),
           );
         }
       } finally {
@@ -239,8 +224,7 @@ function ReportsPage() {
       setMovementProductCatalog(productCatalogData);
     } catch (error) {
       setError(
-        error.response?.data?.message ||
-          "No fue posible actualizar los reportes",
+        getErrorMessage(error, "No fue posible actualizar los reportes"),
       );
     } finally {
       setRefreshing(false);
@@ -489,8 +473,7 @@ function ReportsPage() {
       dispatchMovementFilters({ type: "APPLY_FILTERS", filters });
     } catch (error) {
       setError(
-        error.response?.data?.message ||
-          "No fue posible aplicar los filtros del reporte",
+        getErrorMessage(error, "No fue posible aplicar los filtros del reporte"),
       );
     } finally {
       setFilteringMovements(false);
@@ -679,10 +662,19 @@ function ReportsPage() {
 
       setExportMessage("El reporte completo se exportó correctamente a Excel.");
     } catch (exportError) {
+      const exportMessage = exportError?.message;
+      const readableMessage =
+        typeof exportMessage === "string" &&
+        exportMessage.trim() &&
+        exportMessage.trim().toLowerCase() !== "network error";
+
       setError(
-        exportError.response?.data?.message ||
-          exportError.message ||
-          "No fue posible generar el archivo Excel",
+        getErrorMessage(
+          exportError,
+          readableMessage
+            ? exportMessage
+            : "No fue posible generar el archivo Excel",
+        ),
       );
     } finally {
       setExportingMode("");
@@ -839,139 +831,13 @@ function ReportsPage() {
             </span>
           </div>
 
-          <div className="report-summary-grid report-inventory-summary">
-            <article className="report-summary-card report-summary-products">
-              <div className="report-summary-icon">
-                <Package size={20} />
-              </div>
-
-              <div>
-                <span>Total productos</span>
-
-                <strong>{inventoryReport.summary.totalProducts}</strong>
-
-                <small>Registrados</small>
-              </div>
-            </article>
-
-            <article className="report-summary-card report-summary-units">
-              <div className="report-summary-icon">
-                <Boxes size={20} />
-              </div>
-
-              <div>
-                <span>Unidades en stock</span>
-
-                <strong>{inventoryReport.summary.totalUnitsInStock}</strong>
-
-                <small>Disponibles</small>
-              </div>
-            </article>
-
-            <article className="report-summary-card report-summary-low">
-              <div className="report-summary-icon">
-                <AlertTriangle size={20} />
-              </div>
-
-              <div>
-                <span>Stock bajo</span>
-
-                <strong>{inventoryReport.summary.productsWithLowStock}</strong>
-
-                <small>Requieren atención</small>
-              </div>
-            </article>
-
-            <article className="report-summary-card report-summary-out">
-              <div className="report-summary-icon">
-                <PackageX size={20} />
-              </div>
-
-              <div>
-                <span>Sin stock</span>
-
-                <strong>{inventoryReport.summary.productsOutOfStock}</strong>
-
-                <small>Sin unidades</small>
-              </div>
-            </article>
-
-            <article className="report-summary-card report-summary-normal">
-              <div className="report-summary-icon">
-                <PackageCheck size={20} />
-              </div>
-
-              <div>
-                <span>Stock normal</span>
-
-                <strong>
-                  {inventoryReport.summary.productsWithNormalStock}
-                </strong>
-
-                <small>Sin alertas</small>
-              </div>
-            </article>
-          </div>
+          <InventoryReportSummary summary={inventoryReport.summary} />
 
           <div className="report-visual-grid">
-            <article className="report-chart-card">
-              <div className="report-card-heading">
-                <div>
-                  <h4>Distribución del inventario</h4>
-
-                  <p>Productos agrupados por estado de stock.</p>
-                </div>
-
-                <Layers3 size={19} />
-              </div>
-
-              <div className="report-donut-layout">
-                <div className="report-donut">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={inventoryStatusData}
-                        dataKey="value"
-                        nameKey="name"
-                        innerRadius={62}
-                        outerRadius={86}
-                        paddingAngle={3}
-                        stroke="none"
-                      >
-                        {inventoryStatusData.map((item) => (
-                          <Cell key={item.name} fill={item.color} />
-                        ))}
-                      </Pie>
-
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-
-                  <div className="report-donut-center">
-                    <strong>{inventoryReport.summary.totalProducts}</strong>
-
-                    <span>productos</span>
-                  </div>
-                </div>
-
-                <div className="report-donut-legend">
-                  {inventoryStatusData.map((item) => (
-                    <div className="report-donut-row" key={item.name}>
-                      <div>
-                        <span
-                          className="report-legend-dot"
-                          style={{ background: item.color }}
-                        />
-
-                        <span>{item.name}</span>
-                      </div>
-
-                      <strong>{item.value}</strong>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </article>
+            <InventoryStockChart
+              data={inventoryStatusData}
+              totalProducts={inventoryReport.summary.totalProducts}
+            />
 
             <article className="report-health-card">
               <div className="report-card-heading">
@@ -1048,60 +914,18 @@ function ReportsPage() {
               </span>
             </div>
 
-            <div className="report-toolbar">
-              <div className="report-search">
-                <Search size={16} />
-
-                <input
-                  type="search"
-                  value={inventorySearch}
-                  placeholder="Buscar código, producto o categoría..."
-                  aria-label="Buscar en reporte de inventario"
-                  onChange={(event) =>
-                    dispatchInventoryFilters({
-                      type: "SET_FILTER",
-                      field: "inventorySearch",
-                      value: event.target.value,
-                    })
-                  }
-                />
-              </div>
-
-              <div className="report-filter">
-                <Filter size={15} />
-
-                <AppSelect
-                  value={inventoryStatusFilter}
-                  aria-label="Filtrar inventario por estado"
-                  onChange={(event) =>
-                    dispatchInventoryFilters({
-                      type: "SET_FILTER",
-                      field: "inventoryStatusFilter",
-                      value: event.target.value,
-                    })
-                  }
-                >
-                  <option value="">Todos los estados</option>
-
-                  <option value="NORMAL">Normal</option>
-
-                  <option value="LOW_STOCK">Bajo stock</option>
-
-                  <option value="OUT_OF_STOCK">Sin stock</option>
-                </AppSelect>
-              </div>
-
-              {hasInventoryFilters && (
-                <button
-                  type="button"
-                  className="report-clear-button"
-                  onClick={() => dispatchInventoryFilters({ type: "RESET_FILTERS" })}
-                >
-                  <X size={14} />
-                  Limpiar
-                </button>
-              )}
-            </div>
+            <InventoryReportFilters
+              inventorySearch={inventorySearch}
+              inventoryStatusFilter={inventoryStatusFilter}
+              hasInventoryFilters={hasInventoryFilters}
+              onSearchChange={(value) =>
+                dispatchInventoryFilters({ type: "SET_FILTER", field: "inventorySearch", value })
+              }
+              onStatusChange={(value) =>
+                dispatchInventoryFilters({ type: "SET_FILTER", field: "inventoryStatusFilter", value })
+              }
+              onClear={() => dispatchInventoryFilters({ type: "RESET_FILTERS" })}
+            />
 
             {hasInventoryFilters && (
               <div className="report-filter-summary">
@@ -1110,98 +934,13 @@ function ReportsPage() {
               </div>
             )}
 
-            <div className="report-table-container">
-              {filteredInventoryProducts.length === 0 ? (
-                <div className="report-empty-state">
-                  <Package size={25} />
-
-                  <h4>No encontramos productos</h4>
-
-                  <p>
-                    Prueba cambiando el término de búsqueda o el filtro
-                    seleccionado.
-                  </p>
-                </div>
-              ) : (
-                <table className="report-table">
-                  <thead>
-                    <tr>
-                      <th>Producto</th>
-
-                      <th>Categoría</th>
-
-                      <th>Unidad</th>
-
-                      <th>Stock actual</th>
-
-                      <th>Stock mínimo</th>
-
-                      <th>Estado</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {filteredInventoryProducts.map((product) => (
-                      <tr key={product.productId}>
-                        <td>
-                          <div className="report-product-cell">
-                            <div className="report-product-icon">
-                              <Package size={15} />
-                            </div>
-
-                            <div>
-                              <strong>{product.name}</strong>
-
-                              <span>{product.code}</span>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td>{product.category}</td>
-
-                        <td>{product.unitOfMeasure}</td>
-
-                        <td>
-                          <strong
-                            className={
-                              product.stockStatus === "OUT_OF_STOCK"
-                                ? "report-stock-value report-stock-out"
-                                : product.stockStatus === "LOW_STOCK"
-                                  ? "report-stock-value report-stock-low"
-                                  : "report-stock-value report-stock-normal"
-                            }
-                          >
-                            {product.currentStock}
-                          </strong>
-                        </td>
-
-                        <td>{product.minimumStock}</td>
-
-                        <td>
-                          <span
-                            className={getStockStatusClass(product.stockStatus)}
-                          >
-                            {product.stockStatus === "NORMAL" && (
-                              <CheckCircle2 size={12} />
-                            )}
-
-                            {product.stockStatus === "LOW_STOCK" && (
-                              <AlertTriangle size={12} />
-                            )}
-
-                            {product.stockStatus === "OUT_OF_STOCK" && (
-                              <PackageX size={12} />
-                            )}
-
-                            {getStockStatusLabel(product.stockStatus)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+            <InventoryReportTable
+              products={filteredInventoryProducts.map((product) => ({
+                ...product,
+                stockStatusClass: getStockStatusClass(product.stockStatus),
+                stockStatusLabel: getStockStatusLabel(product.stockStatus),
+              }))}
+            />
           </div>
         </section>
       )}
@@ -1230,322 +969,39 @@ function ReportsPage() {
             </span>
           </div>
 
-          <article className="report-advanced-filter-card">
-            <div className="report-advanced-filter-heading">
-              <div className="report-advanced-filter-title">
-                <div className="report-advanced-filter-icon">
-                  <Filter size={18} />
-                </div>
-
-                <div>
-                  <h4>Filtros del reporte</h4>
-                  <p>
-                    Define el período, tipo de movimiento y producto que quieres
-                    analizar.
-                  </p>
-                </div>
-              </div>
-
-              <span
-                className={
-                  hasAppliedMovementFilters
-                    ? "report-filter-state report-filter-state-active"
-                    : "report-filter-state"
-                }
-              >
-                {hasAppliedMovementFilters
-                  ? `${activeMovementFilterCount} ${
-                      activeMovementFilterCount === 1
-                        ? "filtro activo"
-                        : "filtros activos"
-                    }`
-                  : "Sin filtros"}
-              </span>
-            </div>
-
-            <div className="report-period-block">
-              <span className="report-filter-label">Período rápido</span>
-
-              <div className="report-period-buttons">
-                {PERIOD_OPTIONS.map((option) => (
-                  <button
-                    type="button"
-                    key={option.value}
-                    className={
-                      movementFilters.period === option.value
-                        ? "report-period-button report-period-button-active"
-                        : "report-period-button"
-                    }
-                    onClick={() => handlePeriodPreset(option.value)}
-                    disabled={filteringMovements}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="report-advanced-filter-grid">
-              <label className="report-filter-field">
-                <span>Desde</span>
-                <div className="report-date-input">
-                  <CalendarDays size={15} />
-                  <input
-                    type="date"
-                    value={movementFilters.from}
-                    onChange={(event) =>
-                      dispatchMovementFilters({
-                        type: "UPDATE_DRAFT",
-                        filters: { period: "custom", from: event.target.value },
-                      })
-                    }
-                  />
-                </div>
-              </label>
-
-              <label className="report-filter-field">
-                <span>Hasta</span>
-                <div className="report-date-input">
-                  <CalendarDays size={15} />
-                  <input
-                    type="date"
-                    value={movementFilters.to}
-                    onChange={(event) =>
-                      dispatchMovementFilters({
-                        type: "UPDATE_DRAFT",
-                        filters: { period: "custom", to: event.target.value },
-                      })
-                    }
-                  />
-                </div>
-              </label>
-
-              <label className="report-filter-field">
-                <span>Tipo de movimiento</span>
-                <div className="report-select-input">
-                  <ArrowDownToLine size={15} />
-                  <AppSelect
-                    value={movementFilters.type}
-                    onChange={(event) =>
-                      dispatchMovementFilters({
-                        type: "UPDATE_DRAFT",
-                        filters: { type: event.target.value },
-                      })
-                    }
-                  >
-                    <option value="">Todos los tipos</option>
-                    <option value="ENTRADA">Entradas</option>
-                    <option value="SALIDA">Salidas</option>
-                  </AppSelect>
-                </div>
-              </label>
-
-              <div className="report-filter-field">
-                <span>Productos</span>
-
-                <div
-                  className="report-product-multiselect"
-                  ref={productSelectorRef}
-                >
-                  <button
-                    type="button"
-                    className={
-                      productSelectorOpen
-                        ? "report-product-selector-button report-product-selector-button-open"
-                        : "report-product-selector-button"
-                    }
-                    aria-expanded={productSelectorOpen}
-                    aria-haspopup="listbox"
-                    onClick={() =>
-                      setProductSelectorOpen((current) => !current)
-                    }
-                  >
-                    <Package size={15} />
-
-                    <span className="report-product-selector-value">
-                      {productSelectorLabel}
-                    </span>
-
-                    <ChevronDown
-                      size={15}
-                      className={
-                        productSelectorOpen
-                          ? "report-product-selector-chevron report-product-selector-chevron-open"
-                          : "report-product-selector-chevron"
-                      }
-                    />
-                  </button>
-
-                  {productSelectorOpen && (
-                    <div
-                      className="report-product-selector-menu"
-                      role="listbox"
-                      aria-label="Seleccionar productos del reporte"
-                      aria-multiselectable="true"
-                    >
-                      <div className="report-product-selector-search">
-                        <Search size={14} />
-
-                        <input
-                          type="search"
-                          value={productSelectorSearch}
-                          placeholder="Buscar producto o código..."
-                          aria-label="Buscar productos para filtrar"
-                          onChange={(event) =>
-                            setProductSelectorSearch(event.target.value)
-                          }
-                        />
-                      </div>
-
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected={movementFilters.productIds.length === 0}
-                        className={
-                          movementFilters.productIds.length === 0
-                            ? "report-product-option report-product-option-selected"
-                            : "report-product-option"
-                        }
-                        onClick={selectAllMovementProducts}
-                      >
-                        <span className="report-product-option-check">
-                          {movementFilters.productIds.length === 0 && (
-                            <Check size={12} />
-                          )}
-                        </span>
-
-                        <span className="report-product-option-copy">
-                          <strong>Todos los productos</strong>
-                          <small>No limitar el reporte por producto</small>
-                        </span>
-                      </button>
-
-                      <div className="report-product-selector-divider" />
-
-                      <div className="report-product-selector-options">
-                        {filteredMovementProductOptions.length === 0 ? (
-                          <div className="report-product-selector-empty">
-                            No encontramos productos con esa búsqueda.
-                          </div>
-                        ) : (
-                          filteredMovementProductOptions.map((product) => {
-                            const isSelected = movementFilters.productIds.some(
-                              (productId) =>
-                                String(productId) === String(product.productId),
-                            );
-
-                            return (
-                              <button
-                                type="button"
-                                role="option"
-                                aria-selected={isSelected}
-                                className={
-                                  isSelected
-                                    ? "report-product-option report-product-option-selected"
-                                    : "report-product-option"
-                                }
-                                key={product.productId}
-                                onClick={() =>
-                                  toggleMovementProduct(product.productId)
-                                }
-                              >
-                                <span className="report-product-option-check">
-                                  {isSelected && <Check size={12} />}
-                                </span>
-
-                                <span className="report-product-option-copy">
-                                  <strong>{product.name}</strong>
-                                  <small>
-                                    {product.code}
-                                    {product.active === false && (
-                                      <span className="report-product-inactive-label">
-                                        Inactivo
-                                      </span>
-                                    )}
-                                  </small>
-                                </span>
-                              </button>
-                            );
-                          })
-                        )}
-                      </div>
-
-                      <div className="report-product-selector-footer">
-                        <span>
-                          {movementFilters.productIds.length === 0
-                            ? "Todos incluidos"
-                            : `${movementFilters.productIds.length} ${
-                                movementFilters.productIds.length === 1
-                                  ? "producto seleccionado"
-                                  : "productos seleccionados"
-                              }`}
-                        </span>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setProductSelectorOpen(false);
-                            setProductSelectorSearch("");
-                          }}
-                        >
-                          Cerrar
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="report-filter-footer">
-              <div className="report-filter-help">
-                <CalendarDays size={15} />
-                <span>
-                  Para consultar un solo día, usa la misma fecha en “Desde” y
-                  “Hasta”.
-                </span>
-              </div>
-
-              <div className="report-filter-actions">
-                <button
-                  type="button"
-                  className="report-filter-reset-button"
-                  onClick={clearMovementFilters}
-                  disabled={filteringMovements}
-                >
-                  <X size={15} />
-                  Limpiar filtros
-                </button>
-
-                <button
-                  type="button"
-                  className="report-filter-apply-button"
-                  onClick={() => applyMovementFilters()}
-                  disabled={filteringMovements}
-                >
-                  <RefreshCw
-                    size={15}
-                    className={filteringMovements ? "reports-refresh-spin" : ""}
-                  />
-                  {filteringMovements ? "Aplicando..." : "Aplicar filtros"}
-                </button>
-              </div>
-            </div>
-
-            {hasAppliedMovementFilters && (
-              <div className="report-active-filter-row">
-                <span className="report-active-filter-title">Vista actual</span>
-
-                <div className="report-active-filter-chips">
-                  {activeMovementFilterChips.map((chip) => (
-                    <span className="report-active-filter-chip" key={chip}>
-                      {chip}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </article>
+          <MovementReportFilters
+            movementFilters={movementFilters}
+            periodOptions={PERIOD_OPTIONS}
+            filteringMovements={filteringMovements}
+            hasAppliedMovementFilters={hasAppliedMovementFilters}
+            activeMovementFilterCount={activeMovementFilterCount}
+            activeMovementFilterChips={activeMovementFilterChips}
+            productSelectorRef={productSelectorRef}
+            productSelectorOpen={productSelectorOpen}
+            productSelectorLabel={productSelectorLabel}
+            productSelectorSearch={productSelectorSearch}
+            filteredMovementProductOptions={filteredMovementProductOptions}
+            onPeriodChange={handlePeriodPreset}
+            onDateChange={(field, value) =>
+              dispatchMovementFilters({
+                type: "UPDATE_DRAFT",
+                filters: { period: "custom", [field]: value },
+              })
+            }
+            onTypeChange={(value) =>
+              dispatchMovementFilters({ type: "UPDATE_DRAFT", filters: { type: value } })
+            }
+            onToggleProductSelector={() => setProductSelectorOpen((current) => !current)}
+            onProductSearchChange={setProductSelectorSearch}
+            onSelectAllProducts={selectAllMovementProducts}
+            onToggleProduct={toggleMovementProduct}
+            onCloseProductSelector={() => {
+              setProductSelectorOpen(false);
+              setProductSelectorSearch("");
+            }}
+            onClear={clearMovementFilters}
+            onApply={() => applyMovementFilters()}
+          />
 
           {movementReport.movements.length === 0 && (
             <div className="report-no-results">
@@ -1563,145 +1019,12 @@ function ReportsPage() {
             </div>
           )}
 
-          <div className="report-summary-grid report-movement-summary">
-            <article className="report-summary-card report-summary-movements">
-              <div className="report-summary-icon">
-                <History size={20} />
-              </div>
+          <MovementReportSummary summary={movementReport.summary} />
 
-              <div>
-                <span>Movimientos</span>
-
-                <strong>{movementReport.summary.totalMovements}</strong>
-
-                <small>En la vista actual</small>
-              </div>
-            </article>
-
-            <article className="report-summary-card report-summary-inbound">
-              <div className="report-summary-icon">
-                <ArrowDownToLine size={20} />
-              </div>
-
-              <div>
-                <span>Total entradas</span>
-
-                <strong>{movementReport.summary.totalInbound}</strong>
-
-                <small>{movementReport.summary.inboundUnits} unidades</small>
-              </div>
-            </article>
-
-            <article className="report-summary-card report-summary-outbound">
-              <div className="report-summary-icon">
-                <ArrowUpFromLine size={20} />
-              </div>
-
-              <div>
-                <span>Total salidas</span>
-
-                <strong>{movementReport.summary.totalOutbound}</strong>
-
-                <small>{movementReport.summary.outboundUnits} unidades</small>
-              </div>
-            </article>
-
-            <article className="report-summary-card report-summary-balance">
-              <div className="report-summary-icon">
-                <Scale size={20} />
-              </div>
-
-              <div>
-                <span>Balance</span>
-
-                <strong>{movementReport.summary.unitBalance}</strong>
-
-                <small>Unidades netas</small>
-              </div>
-            </article>
-          </div>
-
-          <article className="report-chart-card report-movement-chart-card">
-            <div className="report-card-heading">
-              <div>
-                <h4>Unidades por producto</h4>
-
-                <p>
-                  Comparación de unidades ingresadas y retiradas en los
-                  productos con mayor actividad.
-                </p>
-              </div>
-
-              <BarChart3 size={19} />
-            </div>
-
-            {movementChartData.length === 0 ? (
-              <div className="report-empty-state report-chart-empty">
-                <BarChart3 size={25} />
-
-                <h4>Sin datos para graficar</h4>
-
-                <p>
-                  {hasAppliedMovementFilters
-                    ? "No hay movimientos para los filtros seleccionados."
-                    : "No hay movimientos registrados por producto."}
-                </p>
-              </div>
-            ) : (
-              <div className="report-bar-chart">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={movementChartData}
-                    margin={{
-                      top: 10,
-
-                      right: 10,
-
-                      left: -15,
-
-                      bottom: 5,
-                    }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                      stroke="#dce8e2"
-                    />
-
-                    <XAxis
-                      dataKey="name"
-                      tick={{ fontSize: 10, fill: "#64748b" }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-
-                    <YAxis
-                      allowDecimals={false}
-                      tick={{ fontSize: 10, fill: "#64748b" }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-
-                    <Tooltip />
-
-                    <Bar
-                      dataKey="entradas"
-                      name="Entradas"
-                      fill="#10b981"
-                      radius={[5, 5, 0, 0]}
-                    />
-
-                    <Bar
-                      dataKey="salidas"
-                      name="Salidas"
-                      fill="#ef4444"
-                      radius={[5, 5, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </article>
+          <MovementUnitsChart
+            data={movementChartData}
+            hasAppliedFilters={hasAppliedMovementFilters}
+          />
 
           <div className="report-table-panel">
             <div className="report-table-heading">
@@ -1721,128 +1044,19 @@ function ReportsPage() {
               </span>
             </div>
 
-            <div className="report-toolbar report-toolbar-simple">
-              <div className="report-search">
-                <Search size={16} />
+            <ReportResultSearch
+              value={productMovementSearch}
+              placeholder="Buscar producto o código..."
+              ariaLabel="Buscar resumen de movimientos por producto"
+              onChange={(value) =>
+                dispatchMovementFilters({ type: "SET_RESULT_SEARCH", field: "productMovementSearch", value })
+              }
+            />
 
-                <input
-                  type="search"
-                  value={productMovementSearch}
-                  placeholder="Buscar producto o código..."
-                  aria-label="Buscar resumen de movimientos por producto"
-                  onChange={(event) =>
-                    dispatchMovementFilters({
-                      type: "SET_RESULT_SEARCH",
-                      field: "productMovementSearch",
-                      value: event.target.value,
-                    })
-                  }
-                />
-              </div>
-
-              {productMovementSearch && (
-                <button
-                  type="button"
-                  className="report-clear-button"
-                  onClick={() =>
-                    dispatchMovementFilters({
-                      type: "SET_RESULT_SEARCH",
-                      field: "productMovementSearch",
-                      value: "",
-                    })
-                  }
-                >
-                  <X size={14} />
-                  Limpiar
-                </button>
-              )}
-            </div>
-
-            <div className="report-table-container">
-              {filteredMovementProducts.length === 0 ? (
-                <div className="report-empty-state">
-                  <Package size={25} />
-
-                  <h4>No encontramos productos</h4>
-
-                  <p>
-                    {movementReport.byProduct.length === 0
-                      ? "No hay productos con movimientos para los filtros seleccionados."
-                      : "Prueba con otro código o nombre de producto."}
-                  </p>
-                </div>
-              ) : (
-                <table className="report-table report-movement-product-table">
-                  <thead>
-                    <tr>
-                      <th>Producto</th>
-
-                      <th>Movimientos</th>
-
-                      <th>Entradas</th>
-
-                      <th>Salidas</th>
-
-                      <th>Unidades entrada</th>
-
-                      <th>Unidades salida</th>
-
-                      <th>Balance</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {filteredMovementProducts.map((product) => (
-                      <tr key={product.productId}>
-                        <td>
-                          <div className="report-product-cell">
-                            <div className="report-product-icon">
-                              <Package size={15} />
-                            </div>
-
-                            <div>
-                              <strong>{product.name}</strong>
-
-                              <span>{product.code}</span>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td>{product.totalMovements}</td>
-
-                        <td>
-                          <span className="report-number-entry">
-                            {product.totalInbound}
-                          </span>
-                        </td>
-
-                        <td>
-                          <span className="report-number-exit">
-                            {product.totalOutbound}
-                          </span>
-                        </td>
-
-                        <td>{product.inboundUnits}</td>
-
-                        <td>{product.outboundUnits}</td>
-
-                        <td>
-                          <strong
-                            className={
-                              product.unitBalance < 0
-                                ? "report-balance report-balance-negative"
-                                : "report-balance report-balance-positive"
-                            }
-                          >
-                            {product.unitBalance}
-                          </strong>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+            <MovementProductReportTable
+              products={filteredMovementProducts}
+              hasProductMovements={movementReport.byProduct.length > 0}
+            />
           </div>
 
           <div className="report-table-panel report-history-panel">
@@ -1861,42 +1075,14 @@ function ReportsPage() {
               </span>
             </div>
 
-            <div className="report-toolbar report-toolbar-simple">
-              <div className="report-search">
-                <Search size={16} />
-
-                <input
-                  type="search"
-                  value={historySearch}
-                  placeholder="Buscar producto, código u observación..."
-                  aria-label="Buscar historial de movimientos"
-                  onChange={(event) =>
-                    dispatchMovementFilters({
-                      type: "SET_RESULT_SEARCH",
-                      field: "historySearch",
-                      value: event.target.value,
-                    })
-                  }
-                />
-              </div>
-
-              {hasHistoryFilters && (
-                <button
-                  type="button"
-                  className="report-clear-button"
-                  onClick={() =>
-                    dispatchMovementFilters({
-                      type: "SET_RESULT_SEARCH",
-                      field: "historySearch",
-                      value: "",
-                    })
-                  }
-                >
-                  <X size={14} />
-                  Limpiar
-                </button>
-              )}
-            </div>
+            <ReportResultSearch
+              value={historySearch}
+              placeholder="Buscar producto, código u observación..."
+              ariaLabel="Buscar historial de movimientos"
+              onChange={(value) =>
+                dispatchMovementFilters({ type: "SET_RESULT_SEARCH", field: "historySearch", value })
+              }
+            />
 
             {hasHistoryFilters && (
               <div className="report-filter-summary">
@@ -1905,111 +1091,13 @@ function ReportsPage() {
               </div>
             )}
 
-            <div className="report-table-container">
-              {filteredMovementHistory.length === 0 ? (
-                <div className="report-empty-state">
-                  <History size={25} />
-
-                  <h4>No encontramos movimientos</h4>
-
-                  <p>
-                    {movementReport.movements.length === 0
-                      ? "No existen movimientos para los filtros seleccionados."
-                      : "Prueba cambiando el término de búsqueda."}
-                  </p>
-                </div>
-              ) : (
-                <table className="report-table report-history-table">
-                  <thead>
-                    <tr>
-                      <th>Fecha</th>
-
-                      <th>Producto</th>
-
-                      <th>Tipo</th>
-
-                      <th>Cantidad</th>
-
-                      <th>Stock resultante</th>
-
-                      <th>Observación</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {filteredMovementHistory.map((movement) => (
-                      <tr key={movement.id}>
-                        <td>
-                          <div className="report-date-cell">
-                            <CalendarDays size={14} />
-
-                            <span>{formatMovementDate(movement.date)}</span>
-                          </div>
-                        </td>
-
-                        <td>
-                          <div className="report-product-cell">
-                            <div className="report-product-icon">
-                              <Package size={15} />
-                            </div>
-
-                            <div>
-                              <strong>{movement.productName}</strong>
-
-                              <span>{movement.productCode}</span>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td>
-                          <span
-                            className={
-                              movement.type === "ENTRADA"
-                                ? "report-movement-badge report-movement-entry"
-                                : "report-movement-badge report-movement-exit"
-                            }
-                          >
-                            {movement.type === "ENTRADA" ? (
-                              <ArrowDownToLine size={12} />
-                            ) : (
-                              <ArrowUpFromLine size={12} />
-                            )}
-
-                            {movement.type === "ENTRADA" ? "Entrada" : "Salida"}
-                          </span>
-                        </td>
-
-                        <td>
-                          <strong
-                            className={
-                              movement.type === "ENTRADA"
-                                ? "report-number-entry"
-                                : "report-number-exit"
-                            }
-                          >
-                            {movement.type === "ENTRADA" ? "+" : "-"}
-
-                            {movement.quantity}
-                          </strong>
-                        </td>
-
-                        <td>
-                          <span className="report-stock-result">
-                            {movement.resultingStock}
-                          </span>
-                        </td>
-
-                        <td>
-                          <span className="report-observation">
-                            {movement.observation || "Sin observación"}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+            <MovementHistoryReportTable
+              movements={filteredMovementHistory.map((movement) => ({
+                ...movement,
+                formattedDate: formatMovementDate(movement.date),
+              }))}
+              hasMovements={movementReport.movements.length > 0}
+            />
           </div>
         </section>
       )}
