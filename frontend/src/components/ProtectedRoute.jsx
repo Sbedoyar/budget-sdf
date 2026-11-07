@@ -1,10 +1,9 @@
-import { useContext } from 'react'
 import { Navigate } from 'react-router-dom'
-import { AuthContext } from '../contexts/AuthContext'
+import { useAuth } from '../hooks/useAuth'
 
 // Restringe el contenido hijo a sesiones con un JWT presente en el almacenamiento local.
 function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useContext(AuthContext)
+  const { isAuthenticated } = useAuth()
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
