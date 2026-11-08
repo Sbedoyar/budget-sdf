@@ -6,12 +6,9 @@ import {
   AlertTriangle,
   BarChart3,
   CheckCircle2,
-  ChevronDown,
   CircleAlert,
   Filter,
-  FileSpreadsheet,
   History,
-  Download,
   PackageX,
   RefreshCw,
   Warehouse,
@@ -23,6 +20,7 @@ import {
 } from "../services/reportService";
 import InventoryReportFilters from "../components/reports/InventoryReportFilters";
 import MovementReportFilters from "../components/reports/MovementReportFilters";
+import ReportExportMenu from "../components/reports/ReportExportMenu";
 import ReportResultSearch from "../components/reports/ReportResultSearch";
 import InventoryReportSummary from "../components/reports/InventoryReportSummary";
 import InventoryStockChart from "../components/reports/InventoryStockChart";
@@ -84,7 +82,6 @@ const buildMovementRequestFilters = (filters) => {
   return requestFilters;
 };
 
-// Presenta reportes de inventario y movimientos con filtros y agregados calculados localmente.
 
 function ReportsPage() {
   const [inventoryReport, setInventoryReport] = useState(null);
@@ -246,8 +243,6 @@ function ReportsPage() {
     }
   };
 
-  // Traduce los estados de stock del backend a etiquetas visibles en español.
-
   const getStockStatusLabel = (status) => {
     switch (status) {
       case "OUT_OF_STOCK":
@@ -263,8 +258,6 @@ function ReportsPage() {
         return status;
     }
   };
-
-  // Asocia cada estado recibido con la clase visual usada en sus indicadores.
 
   const getStockStatusClass = (status) => {
     switch (status) {
@@ -645,7 +638,6 @@ function ReportsPage() {
   }
 
   /**
-   * Genera un archivo Excel con la vista filtrada actual o con el reporte completo.
    * El reporte completo se vuelve a consultar para no depender de los filtros visibles.
    */
   const handleExcelExport = async (mode) => {
@@ -746,75 +738,14 @@ function ReportsPage() {
             {refreshing ? "Actualizando..." : "Actualizar reportes"}
           </button>
 
-          <div className="reports-export-wrapper" ref={exportMenuRef}>
-            <button
-              type="button"
-              className={
-                exportMenuOpen
-                  ? "reports-export-button reports-export-button-open"
-                  : "reports-export-button"
-              }
-              aria-expanded={exportMenuOpen}
-              aria-haspopup="menu"
-              disabled={Boolean(exportingMode) || refreshing}
-              onClick={() => setExportMenuOpen((current) => !current)}
-            >
-              <FileSpreadsheet size={17} />
-              <span>
-                {exportingMode ? "Generando Excel..." : "Exportar Excel"}
-              </span>
-              <ChevronDown
-                size={15}
-                className={
-                  exportMenuOpen
-                    ? "reports-export-chevron reports-export-chevron-open"
-                    : "reports-export-chevron"
-                }
-              />
-            </button>
-
-            {exportMenuOpen && !exportingMode && (
-              <div
-                className="reports-export-menu"
-                role="menu"
-                aria-label="Opciones de exportación a Excel"
-              >
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="reports-export-option"
-                  onClick={() => handleExcelExport("current")}
-                >
-                  <div className="reports-export-option-icon">
-                    <Filter size={16} />
-                  </div>
-
-                  <div>
-                    <strong>Exportar vista actual</strong>
-                    <span>Respeta los filtros aplicados.</span>
-                  </div>
-                </button>
-
-                <div className="reports-export-menu-divider" />
-
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="reports-export-option"
-                  onClick={() => handleExcelExport("full")}
-                >
-                  <div className="reports-export-option-icon">
-                    <Download size={16} />
-                  </div>
-
-                  <div>
-                    <strong>Exportar reporte completo</strong>
-                    <span>Incluye todos los movimientos.</span>
-                  </div>
-                </button>
-              </div>
-            )}
-          </div>
+          <ReportExportMenu
+            exportMenuRef={exportMenuRef}
+            exportMenuOpen={exportMenuOpen}
+            exportingMode={exportingMode}
+            refreshing={refreshing}
+            onToggle={() => setExportMenuOpen((current) => !current)}
+            onExport={handleExcelExport}
+          />
         </div>
       </div>
 
