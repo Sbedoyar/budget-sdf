@@ -796,30 +796,8 @@
    MODAL DE ELIMINACIÓN
    ========================================================= */
 
-.category-modal-backdrop {
-  position: fixed;
-  inset: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 20px;
-
-  background: rgba(2, 44, 34, 0.42);
-
-  backdrop-filter: blur(5px);
-
-  z-index: 500;
-}
-
 .category-modal {
   width: min(100%, 420px);
-
-  padding: 26px;
-
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  border-radius: 18px;
 
   background:
     linear-gradient(
@@ -827,11 +805,6 @@
       #ffffff,
       #f6faf8
     );
-
-  box-shadow:
-    0 24px 60px rgba(2, 44, 34, 0.22);
-
-  text-align: center;
 }
 
 .category-modal-danger-icon {
@@ -879,28 +852,7 @@
 }
 
 .category-modal-actions {
-  display: grid;
   grid-template-columns: 1fr 1fr;
-
-  gap: 10px;
-
-  margin-top: 22px;
-}
-
-.category-modal-cancel,
-.category-modal-delete {
-  min-height: 41px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  gap: 7px;
-
-  border-radius: 10px;
-
-  font-size: 12px;
-  font-weight: 700;
 }
 
 .category-modal-cancel {
@@ -925,12 +877,6 @@
 
   box-shadow:
     0 6px 14px rgba(220, 38, 38, 0.16);
-}
-
-.category-modal-cancel:disabled,
-.category-modal-delete:disabled {
-  cursor: not-allowed;
-  opacity: 0.65;
 }
 
 
