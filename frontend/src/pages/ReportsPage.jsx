@@ -120,6 +120,7 @@ function ReportsPage() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [filteringMovements, setFilteringMovements] = useState(false);
+  const movementRequestId = useRef(0);
 
   const [error, setError] = useState("");
 
@@ -205,22 +206,36 @@ function ReportsPage() {
 
   // Vuelve a consultar ambos reportes respetando los filtros aplicados al reporte de movimientos.
   const refreshReports = async () => {
+    const requestId = ++movementRequestId.current;
+
     try {
       setRefreshing(true);
+      setFilteringMovements(false);
       setError("");
 
       const [
         inventoryData,
-        movementData,
+        movementResult,
         productCatalogData,
       ] = await Promise.all([
         getInventoryReport(),
-        getMovementReport(buildMovementRequestFilters(appliedMovementFilters)),
+        getMovementReport(buildMovementRequestFilters(appliedMovementFilters)).then(
+          (data) => ({ ok: true, data }),
+          (error) => ({ ok: false, error }),
+        ),
         getProducts(true),
       ]);
 
+      // Una consulta de movimientos reemplazada no invalida el inventario ni el catálogo.
+      if (requestId === movementRequestId.current) {
+        if (!movementResult.ok) {
+          throw movementResult.error;
+        }
+
+        setMovementReport(movementResult.data);
+      }
+
       setInventoryReport(inventoryData);
-      setMovementReport(movementData);
       setMovementProductCatalog(productCatalogData);
     } catch (error) {
       setError(
@@ -461,6 +476,8 @@ function ReportsPage() {
       return;
     }
 
+    const requestId = ++movementRequestId.current;
+
     try {
       setFilteringMovements(true);
       setError("");
@@ -469,14 +486,20 @@ function ReportsPage() {
         buildMovementRequestFilters(filters),
       );
 
+      if (requestId !== movementRequestId.current) return;
+
       setMovementReport(movementData);
       dispatchMovementFilters({ type: "APPLY_FILTERS", filters });
     } catch (error) {
+      if (requestId !== movementRequestId.current) return;
+
       setError(
         getErrorMessage(error, "No fue posible aplicar los filtros del reporte"),
       );
     } finally {
-      setFilteringMovements(false);
+      if (requestId === movementRequestId.current) {
+        setFilteringMovements(false);
+      }
     }
   };
 
