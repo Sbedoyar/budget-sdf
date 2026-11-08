@@ -9,15 +9,15 @@ import {
   Package,
   PackageCheck,
   PackageX,
-  Pencil,
   Plus,
   RotateCcw,
   Search,
-  Trash2,
   X,
 } from 'lucide-react'
 import AppSelect from '../components/AppSelect'
 import ProductForm from '../components/ProductForm'
+import ProductRetireDialog from '../components/ProductRetireDialog'
+import ProductsTable from '../components/ProductsTable'
 import { initialProductFormState, productFormReducer } from '../reducers/productFormReducer'
 import { initialProductFiltersState, productFiltersReducer } from '../reducers/productFiltersReducer'
 import { getCategories } from '../services/categoryService'
@@ -274,6 +274,10 @@ function ProductsPage() {
     setProductToDelete(product)
   }
 
+  const handleDeleteCancel = () => {
+    setProductToDelete(null)
+  }
+
   // Confirma el borrado y vuelve a cargar el catálogo para reflejar el resultado del backend.
   const handleDeleteConfirm = async () => {
     if (!productToDelete) {
@@ -338,18 +342,6 @@ function ProductsPage() {
     categoryFilter ||
     stockFilter ||
     activityFilter !== 'ACTIVE'
-
-  const getStatusLabel = (status) => {
-    if (status === 'OUT_OF_STOCK') {
-      return 'Sin stock'
-    }
-
-    if (status === 'LOW_STOCK') {
-      return 'Bajo stock'
-    }
-
-    return 'Normal'
-  }
 
   return (
     <>
@@ -564,231 +556,25 @@ function ProductsPage() {
           </div>
         )}
 
-        <div className="products-table-container">
-          {loading ? (
-            <div className="products-state">
-              <div className="products-spinner" />
-              <p>Cargando productos...</p>
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="products-state products-empty">
-              <div className="products-empty-icon">
-                <Package size={26} />
-              </div>
-
-              <h4>
-                {hasActiveFilters
-                  ? 'No encontramos productos'
-                  : 'No hay productos registrados'}
-              </h4>
-
-              <p>
-                {hasActiveFilters
-                  ? 'Prueba cambiando los filtros o el término de búsqueda.'
-                  : 'Registra el primer producto para comenzar a controlar el inventario.'}
-              </p>
-            </div>
-          ) : (
-            <table className="products-table">
-              <thead>
-                <tr>
-                  <th>Producto</th>
-                  <th>Categoría</th>
-                  <th>Unidad</th>
-                  <th>Stock actual</th>
-                  <th>Stock mínimo</th>
-                  <th>Estado</th>
-                  <th className="products-actions-heading">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {filteredProducts.map((product) => {
-                  const status = getStockStatus(product)
-
-                  return (
-                    <tr
-                      key={product.id}
-                      className={
-                        product.active === false
-                          ? 'product-row-inactive'
-                          : ''
-                      }
-                    >
-                      <td>
-                        <div className="product-name-cell">
-                          <div className="product-row-icon">
-                            <Package size={17} />
-                          </div>
-
-                          <div>
-                            <strong>{product.name}</strong>
-                            <span>{product.code}</span>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td>
-                        <span className="product-category-badge">
-                          {product.category}
-                        </span>
-                      </td>
-
-                      <td>{product.unitOfMeasure}</td>
-
-                      <td>
-                        <strong
-                          className={
-                            status === 'OUT_OF_STOCK'
-                              ? 'product-stock-number product-stock-out'
-                              : status === 'LOW_STOCK'
-                                ? 'product-stock-number product-stock-low'
-                                : 'product-stock-number product-stock-normal'
-                          }
-                        >
-                          {product.currentStock}
-                        </strong>
-                      </td>
-
-                      <td>{product.minimumStock}</td>
-
-                      <td>
-                        {product.active === false ? (
-                          <span className="product-status-badge product-status-inactive">
-                            <CircleAlert size={13} />
-                            Inactivo
-                          </span>
-                        ) : (
-                          <span
-                            className={`product-status-badge product-status-${status.toLowerCase()}`}
-                          >
-                            {status === 'NORMAL' && (
-                              <CheckCircle2 size={13} />
-                            )}
-
-                            {status === 'LOW_STOCK' && (
-                              <AlertTriangle size={13} />
-                            )}
-
-                            {status === 'OUT_OF_STOCK' && (
-                              <PackageX size={13} />
-                            )}
-
-                            {getStatusLabel(status)}
-                          </span>
-                        )}
-                      </td>
-
-                      <td>
-                        <div className="product-actions">
-                          {product.active === false ? (
-                            <button
-                              type="button"
-                              className="product-action-button product-reactivate-button"
-                              onClick={() => handleReactivate(product)}
-                              disabled={reactivatingId === product.id}
-                              aria-label={`Reactivar ${product.name}`}
-                              title="Reactivar producto"
-                            >
-                              <RotateCcw size={16} />
-                              <span>
-                                {reactivatingId === product.id
-                                  ? 'Reactivando...'
-                                  : 'Reactivar'}
-                              </span>
-                            </button>
-                          ) : (
-                            <>
-                              <button
-                                type="button"
-                                className="product-action-button product-edit-button"
-                                onClick={() => handleEdit(product)}
-                                aria-label={`Editar ${product.name}`}
-                                title="Editar producto"
-                              >
-                                <Pencil size={16} />
-                                <span>Editar</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                className="product-action-button product-delete-button"
-                                onClick={() =>
-                                  handleDeleteRequest(product)
-                                }
-                                aria-label={`Retirar ${product.name}`}
-                                title="Retirar producto"
-                              >
-                                <Trash2 size={16} />
-                                <span>Retirar</span>
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
+        <ProductsTable
+          products={filteredProducts}
+          loading={loading}
+          hasActiveFilters={hasActiveFilters}
+          getStockStatus={getStockStatus}
+          reactivatingId={reactivatingId}
+          onEdit={handleEdit}
+          onRetire={handleDeleteRequest}
+          onReactivate={handleReactivate}
+        />
       </section>
 
       {productToDelete && (
-        <div
-          className="product-modal-backdrop"
-          role="presentation"
-        >
-          <div
-            className="product-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="delete-product-title"
-          >
-            <div className="product-modal-danger-icon">
-              <Trash2 size={23} />
-            </div>
-
-            <h3 id="delete-product-title">
-              Retirar producto
-            </h3>
-
-            <p>
-              ¿Deseas retirar{' '}
-              <strong>{productToDelete.name}</strong> del catálogo activo?
-            </p>
-
-            <span>
-              Si tiene movimientos registrados, se desactivará para
-              conservar su historial y podrás reactivarlo después. Si no
-              tiene movimientos, se eliminará definitivamente.
-            </span>
-
-            <div className="product-modal-actions">
-              <button
-                type="button"
-                className="product-modal-cancel"
-                onClick={() => setProductToDelete(null)}
-                disabled={deleting}
-              >
-                Cancelar
-              </button>
-
-              <button
-                type="button"
-                className="product-modal-delete"
-                onClick={handleDeleteConfirm}
-                disabled={deleting}
-              >
-                <Trash2 size={16} />
-                {deleting ? 'Procesando...' : 'Continuar'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ProductRetireDialog
+          productName={productToDelete.name}
+          deleting={deleting}
+          onCancel={handleDeleteCancel}
+          onConfirm={handleDeleteConfirm}
+        />
       )}
     </>
   )

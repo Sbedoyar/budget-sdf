@@ -89,3 +89,57 @@ it('advierte y bloquea una salida superior al stock disponible', async () => {
   expect(screen.getByText('La salida supera el stock disponible (10).')).toBeTruthy()
   expect(createMovement).not.toHaveBeenCalled()
 })
+
+it('muestra el historial inicial y el estado vacío al filtrar sin coincidencias', async () => {
+  const date = '2026-11-07T10:00:00'
+  const entry = {
+    id: 1,
+    productId: 7,
+    productName: 'Arroz',
+    date,
+    type: 'ENTRADA',
+    quantity: 3,
+    resultingStock: 12,
+    observation: 'Compra a proveedor',
+  }
+  getMovements.mockResolvedValue([
+    entry,
+    { ...entry, id: 2, type: 'SALIDA', quantity: 2, resultingStock: 10, observation: '' },
+  ])
+
+  render(<MovementsPage />)
+  const table = await screen.findByRole('table')
+  const formattedDate = new Intl.DateTimeFormat('es-CO', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(date))
+  const entryRow = within(table).getByRole('row', { name: /Compra a proveedor/ })
+  const exitRow = within(table).getByRole('row', { name: /Sin observación/ })
+  expect(within(entryRow).getAllByRole('cell').map((cell) => cell.textContent)).toEqual([
+    formattedDate, 'Arroz', 'Entrada', '+3', '12', 'Compra a proveedor',
+  ])
+  expect(within(exitRow).getAllByRole('cell').map((cell) => cell.textContent)).toEqual([
+    formattedDate, 'Arroz', 'Salida', '-2', '10', 'Sin observación',
+  ])
+
+  fireEvent.change(screen.getByRole('searchbox', { name: 'Buscar movimientos' }), {
+    target: { value: 'Sin coincidencias' },
+  })
+  expect(screen.getByText('Mostrando 0 de 2 movimientos.')).toBeTruthy()
+  expect(screen.getByRole('heading', { name: 'No encontramos movimientos' })).toBeTruthy()
+  expect(screen.queryByRole('table')).toBeNull()
+
+  fireEvent.click(screen.getByRole('button', { name: 'Limpiar' }))
+  expect(within(screen.getByRole('table')).getAllByRole('row')).toHaveLength(3)
+})
+
+it('muestra la carga inicial y luego el historial vacío', async () => {
+  render(<MovementsPage />)
+  expect(screen.getByText('Cargando movimientos...')).toBeTruthy()
+  expect(screen.queryByRole('table')).toBeNull()
+
+  expect(await screen.findByRole('heading', { name: 'No hay movimientos registrados' })).toBeTruthy()
+  expect(screen.getByText('Registra la primera entrada o salida para comenzar el historial.')).toBeTruthy()
+  expect(screen.queryByText('Cargando movimientos...')).toBeNull()
+  expect(screen.queryByRole('table')).toBeNull()
+})
