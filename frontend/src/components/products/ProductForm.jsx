@@ -1,5 +1,5 @@
 import { Pencil, Plus, Save, X } from 'lucide-react'
-import AppSelect from './AppSelect'
+import AppSelect from '../AppSelect'
 
 function ProductForm({
   form,

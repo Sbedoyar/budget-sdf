@@ -15,9 +15,9 @@ import {
   X,
 } from 'lucide-react'
 import AppSelect from '../components/AppSelect'
-import ProductForm from '../components/ProductForm'
-import ProductRetireDialog from '../components/ProductRetireDialog'
-import ProductsTable from '../components/ProductsTable'
+import ProductForm from '../components/products/ProductForm'
+import ProductRetireDialog from '../components/products/ProductRetireDialog'
+import ProductsTable from '../components/products/ProductsTable'
 import { initialProductFormState, productFormReducer } from '../reducers/productFormReducer'
 import { initialProductFiltersState, productFiltersReducer } from '../reducers/productFiltersReducer'
 import { getCategories } from '../services/categoryService'

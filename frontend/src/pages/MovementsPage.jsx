@@ -19,8 +19,8 @@ import {
   getMovements,
 } from '../services/movementService'
 import AppSelect from '../components/AppSelect'
-import MovementForm from '../components/MovementForm'
-import MovementHistoryTable from '../components/MovementHistoryTable'
+import MovementForm from '../components/movements/MovementForm'
+import MovementHistoryTable from '../components/movements/MovementHistoryTable'
 import {
   initialMovementFormState,
   movementFormReducer,
