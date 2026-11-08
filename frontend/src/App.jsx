@@ -9,9 +9,6 @@ import MovementsPage from './pages/MovementsPage'
 import AlertsPage from './pages/AlertsPage'
 import ReportsPage from './pages/ReportsPage'
 
-// Centraliza las rutas públicas, las páginas protegidas y las redirecciones de la aplicación.
-// “MainLayout está protegido por ProtectedRoute. Si el usuario está autenticado, 
-// ProtectedRoute permite que MainLayout se muestre; si no, lo manda al login.”
 function App() {
   return (
     <Routes>
