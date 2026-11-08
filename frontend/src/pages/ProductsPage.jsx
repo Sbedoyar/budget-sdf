@@ -12,12 +12,12 @@ import {
   Pencil,
   Plus,
   RotateCcw,
-  Save,
   Search,
   Trash2,
   X,
 } from 'lucide-react'
 import AppSelect from '../components/AppSelect'
+import ProductForm from '../components/ProductForm'
 import { initialProductFormState, productFormReducer } from '../reducers/productFormReducer'
 import { initialProductFiltersState, productFiltersReducer } from '../reducers/productFiltersReducer'
 import { getCategories } from '../services/categoryService'
@@ -200,6 +200,10 @@ function ProductsPage() {
     clearFeedback()
     resetForm()
     focusForm()
+  }
+
+  const handleFieldChange = (field, value) => {
+    dispatchForm({ type: 'SET_FIELD', field, value })
   }
 
   // Normaliza y valida los campos antes de crear o actualizar; luego sincroniza la lista.
@@ -445,172 +449,15 @@ function ProductsPage() {
         </div>
       )}
 
-      <section className="products-form-panel">
-        <div className="products-panel-heading">
-          <div className="products-panel-icon">
-            {editingId ? <Pencil size={19} /> : <Plus size={19} />}
-          </div>
-
-          <div>
-            <h3>
-              {editingId ? 'Editar producto' : 'Registrar producto'}
-            </h3>
-
-            <p>
-              {editingId
-                ? 'Actualiza la información del producto seleccionado.'
-                : 'Completa la información para agregar un nuevo producto al inventario.'}
-            </p>
-          </div>
-
-          {editingId && (
-            <span className="products-editing-badge">
-              Editando #{editingId}
-            </span>
-          )}
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div className="product-form-grid">
-            <div className="form-group">
-              <label htmlFor="code" className="form-label">
-                Código
-              </label>
-
-              <input
-                ref={codeInputRef}
-                id="code"
-                className="form-input products-form-input"
-                type="text"
-                placeholder="Ej. P001"
-                value={code}
-                onChange={(event) => dispatchForm({ type: 'SET_FIELD', field: 'code', value: event.target.value })}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="name" className="form-label">
-                Nombre
-              </label>
-
-              <input
-                id="name"
-                className="form-input products-form-input"
-                type="text"
-                placeholder="Ej. Coca Cola 1.5L"
-                value={name}
-                onChange={(event) => dispatchForm({ type: 'SET_FIELD', field: 'name', value: event.target.value })}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="category" className="form-label">
-                Categoría
-              </label>
-
-              <AppSelect
-                id="category"
-                className="form-input products-form-input"
-                value={categoryId}
-                onChange={(event) => dispatchForm({ type: 'SET_FIELD', field: 'categoryId', value: event.target.value })}
-                required
-              >
-                <option value="">Selecciona una categoría</option>
-
-                {categories.map((category) => (
-                  <option
-                    key={category.id}
-                    value={category.id}
-                  >
-                    {category.name}
-                  </option>
-                ))}
-              </AppSelect>
-            </div>
-
-            <div className="form-group">
-              <label
-                htmlFor="unitOfMeasure"
-                className="form-label"
-              >
-                Unidad de medida
-              </label>
-
-              <input
-                id="unitOfMeasure"
-                className="form-input products-form-input"
-                type="text"
-                placeholder="Ej. Unidad, Caja, Paquete"
-                value={unitOfMeasure}
-                onChange={(event) =>
-                  dispatchForm({ type: 'SET_FIELD', field: 'unitOfMeasure', value: event.target.value })
-                }
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label
-                htmlFor="minimumStock"
-                className="form-label"
-              >
-                Stock mínimo
-              </label>
-
-              <input
-                id="minimumStock"
-                className="form-input products-form-input"
-                type="number"
-                min="0"
-                placeholder="Ej. 5"
-                value={minimumStock}
-                onChange={(event) =>
-                  dispatchForm({ type: 'SET_FIELD', field: 'minimumStock', value: event.target.value })
-                }
-                required
-              />
-
-              <span className="products-field-help">
-                Define cuándo el sistema debe mostrar una alerta de stock.
-              </span>
-            </div>
-          </div>
-
-          <div className="products-form-actions">
-            <button
-              type="submit"
-              className="products-save-button"
-              disabled={saving}
-            >
-              {editingId ? (
-                <Save size={17} />
-              ) : (
-                <Plus size={17} />
-              )}
-
-              {saving
-                ? 'Guardando...'
-                : editingId
-                  ? 'Guardar cambios'
-                  : 'Crear producto'}
-            </button>
-
-            {editingId && (
-              <button
-                type="button"
-                className="products-cancel-button"
-                onClick={handleCancelEdit}
-                disabled={saving}
-              >
-                <X size={17} />
-                Cancelar
-              </button>
-            )}
-          </div>
-        </form>
-      </section>
+      <ProductForm
+        form={form}
+        categories={categories}
+        saving={saving}
+        codeInputRef={codeInputRef}
+        onFieldChange={handleFieldChange}
+        onSubmit={handleSubmit}
+        onCancel={handleCancelEdit}
+      />
 
       <section className="products-list-panel">
         <div className="products-list-header">
