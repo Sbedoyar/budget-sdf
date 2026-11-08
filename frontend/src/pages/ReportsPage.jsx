@@ -309,7 +309,6 @@ function ReportsPage() {
     ];
   }, [inventoryReport]);
 
-  // Busca productos por código, nombre o categoría y aplica el filtro de estado.
 
   const filteredInventoryProducts = useMemo(() => {
     if (!inventoryReport) {
@@ -346,7 +345,6 @@ function ReportsPage() {
       );
   }, [movementProductCatalog]);
 
-  // Filtra las opciones visibles dentro del selector múltiple de productos.
   const filteredMovementProductOptions = useMemo(() => {
     const query = productSelectorSearch.trim().toLowerCase();
 
@@ -403,7 +401,6 @@ function ReportsPage() {
       }));
   }, [movementReport]);
 
-  // Busca por código o nombre dentro del resumen de movimientos por producto.
 
   const filteredMovementProducts = useMemo(() => {
     if (!movementReport) {
@@ -421,7 +418,6 @@ function ReportsPage() {
     });
   }, [movementReport, productMovementSearch]);
 
-  // Filtra localmente el historial ya consultado por producto, código u observación.
   const filteredMovementHistory = useMemo(() => {
     if (!movementReport) {
       return [];

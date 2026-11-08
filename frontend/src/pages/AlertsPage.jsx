@@ -90,7 +90,6 @@ function AlertsPage() {
     })
   }, [alerts, searchTerm, statusFilter, sortOrder])
 
-  // Restaura los filtros y el orden de criticidad predeterminado.
   const clearFilters = () => {
     setSearchTerm('')
     setStatusFilter('')
