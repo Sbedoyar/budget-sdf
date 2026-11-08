@@ -246,21 +246,6 @@
    RETROALIMENTACIÓN
    ========================================================= */
 
-.movements-feedback {
-  display: flex;
-  align-items: center;
-
-  gap: 9px;
-
-  margin-bottom: 20px;
-  padding: 11px 14px;
-
-  border-radius: 11px;
-
-  font-size: 12px;
-  font-weight: 600;
-}
-
 .movements-feedback-success {
   border: 1px solid #a7e8c2;
 
@@ -430,8 +415,6 @@
 .movements-form-input {
   max-width: none;
 
-  min-height: 43px;
-
   background: rgba(255, 255, 255, 0.72);
 }
 
@@ -578,12 +561,6 @@
 /* =========================================================
    BOTÓN DE REGISTRO
    ========================================================= */
-
-.movements-form-actions {
-  display: flex;
-
-  margin-top: 20px;
-}
 
 .movements-submit-button {
   min-height: 41px;
@@ -764,8 +741,7 @@
     0 0 0 3px rgba(16, 185, 129, 0.10);
 }
 
-.movements-search input,
-.movements-filter select {
+.movements-search input {
   width: 100%;
   height: 39px;
 
@@ -781,10 +757,6 @@
 
 .movements-search input::placeholder {
   color: #94a3b8;
-}
-
-.movements-filter select {
-  cursor: pointer;
 }
 
 .movements-clear-filters {
@@ -825,23 +797,6 @@
 /* =========================================================
    TABLA
    ========================================================= */
-
-.movements-table-container {
-  overflow-x: auto;
-
-  border: 1px solid #cfe0d8;
-  border-radius: 13px;
-
-  background: rgba(255, 255, 255, 0.48);
-}
-
-.movements-table {
-  width: 100%;
-
-  border-collapse: collapse;
-
-  background: transparent;
-}
 
 .movements-table th {
   padding: 11px 12px;
