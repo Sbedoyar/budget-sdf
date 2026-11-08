@@ -134,7 +134,6 @@ function ProductsPage() {
     )
   }, [activeProducts])
 
-  // Combina la búsqueda textual con los filtros seleccionados de categoría, stock y actividad.
   const filteredProducts = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
 
@@ -312,7 +311,6 @@ function ProductsPage() {
     }
   }
 
-  // Reactiva un producto desactivado y vuelve a sincronizar el catálogo.
   const handleReactivate = async (product) => {
     clearFeedback()
 
@@ -332,7 +330,6 @@ function ProductsPage() {
     }
   }
 
-  // Restablece simultáneamente la búsqueda y los filtros activos.
   const clearFilters = () => {
     dispatchFilters({ type: 'RESET_FILTERS' })
   }

@@ -66,7 +66,6 @@ function CategoriesPage() {
     }
   }, [])
 
-  // Filtra en el cliente por nombre, sin distinguir mayúsculas ni espacios exteriores.
   const filteredCategories = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
 
