@@ -1,5 +1,5 @@
 import { ArrowDownToLine, ArrowUpFromLine, CircleAlert, Package } from 'lucide-react'
-import AppSelect from './AppSelect'
+import AppSelect from '../AppSelect'
 
 function MovementForm({
   form,
