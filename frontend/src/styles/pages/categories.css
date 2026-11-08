@@ -319,23 +319,7 @@
 .categories-name-input {
   max-width: none;
 
-  min-height: 43px;
-
   background: rgba(255, 255, 255, 0.72);
-}
-
-.categories-field-help {
-  color: var(--text-muted);
-
-  font-size: 10px;
-}
-
-.categories-form-actions {
-  display: flex;
-
-  gap: 9px;
-
-  margin-top: 20px;
 }
 
 .categories-save-button,

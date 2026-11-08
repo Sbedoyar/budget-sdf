@@ -108,6 +108,30 @@
     0 0 0 3px rgba(16, 185, 129, 0.11);
 }
 
+.categories-name-input,
+.movements-form-input,
+.products-form-input {
+  min-height: 43px;
+}
+
+.categories-field-help,
+.products-field-help {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.categories-form-actions,
+.movements-form-actions,
+.products-form-actions {
+  display: flex;
+  margin-top: 20px;
+}
+
+.categories-form-actions,
+.products-form-actions {
+  gap: 9px;
+}
+
 .form-actions {
   display: flex;
 

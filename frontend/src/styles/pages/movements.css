@@ -415,8 +415,6 @@
 .movements-form-input {
   max-width: none;
 
-  min-height: 43px;
-
   background: rgba(255, 255, 255, 0.72);
 }
 
@@ -563,12 +561,6 @@
 /* =========================================================
    BOTÓN DE REGISTRO
    ========================================================= */
-
-.movements-form-actions {
-  display: flex;
-
-  margin-top: 20px;
-}
 
 .movements-submit-button {
   min-height: 41px;

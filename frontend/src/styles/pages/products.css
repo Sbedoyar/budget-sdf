@@ -375,24 +375,11 @@
 .products-form-input {
   max-width: none;
 
-  min-height: 43px;
-
   background: rgba(255, 255, 255, 0.7);
 }
 
 .products-field-help {
-  color: var(--text-muted);
-
-  font-size: 10px;
   line-height: 1.4;
-}
-
-.products-form-actions {
-  display: flex;
-
-  gap: 9px;
-
-  margin-top: 20px;
 }
 
 .products-save-button,
