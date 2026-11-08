@@ -106,7 +106,6 @@ function MovementsPage() {
     [products, productId],
   )
 
-  // Resume cantidad de operaciones y unidades recibidas o retiradas.
   const movementSummary = useMemo(() => {
     return movements.reduce(
       (summary, movement) => {
@@ -132,7 +131,6 @@ function MovementsPage() {
     )
   }, [movements])
 
-  // Filtra el historial por producto/observación, tipo y producto seleccionado.
   const filteredMovements = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
 
@@ -256,7 +254,6 @@ function MovementsPage() {
     }
   }
 
-  // Limpia simultáneamente los criterios aplicados al historial.
   const clearFilters = () => {
     dispatchFilters({ type: 'RESET_FILTERS' })
   }
