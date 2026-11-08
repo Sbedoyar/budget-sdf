@@ -880,8 +880,7 @@
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
-.report-search input,
-.report-filter select {
+.report-search input {
   width: 100%;
 
   height: 37px;
@@ -899,10 +898,6 @@
 
 .report-search input::placeholder {
   color: #94a3b8;
-}
-
-.report-filter select {
-  cursor: pointer;
 }
 
 .report-clear-button {
@@ -1559,8 +1554,7 @@
   color: var(--budget-700);
 }
 
-.report-date-input input,
-.report-select-input select {
+.report-date-input input {
   width: 100%;
   height: 38px;
 
@@ -1578,10 +1572,6 @@
 }
 
 .report-date-input input {
-  cursor: pointer;
-}
-
-.report-select-input select {
   cursor: pointer;
 }
 
@@ -2189,121 +2179,6 @@
   }
 }
 
-@media (max-width: 760px) {
-  .report-advanced-filter-heading {
-    flex-direction: column;
-  }
-
-  .report-advanced-filter-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .report-period-buttons {
-    width: 100%;
-  }
-
-  .report-period-button {
-    flex: 1 1 120px;
-  }
-
-  .report-filter-actions {
-    flex-direction: column;
-  }
-
-  .report-filter-reset-button,
-  .report-filter-apply-button {
-    width: 100%;
-  }
-
-  .report-active-filter-row {
-    flex-direction: column;
-  }
-
-  .reports-heading {
-    align-items: stretch;
-
-    flex-direction: column;
-  }
-
-  .reports-refresh-button {
-    width: 100%;
-  }
-
-  .report-section-heading {
-    flex-direction: column;
-  }
-
-  .report-inventory-summary,
-  .report-movement-summary {
-    grid-template-columns: 1fr;
-  }
-
-  .report-donut-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .report-donut {
-    height: 210px;
-  }
-
-  .report-toolbar,
-  .report-toolbar-simple {
-    grid-template-columns: 1fr;
-  }
-
-  .report-clear-button {
-    width: 100%;
-  }
-
-  .report-table-heading {
-    flex-direction: column;
-  }
-
-  .report-table {
-    min-width: 760px;
-  }
-
-  .report-bar-chart {
-    height: 280px;
-  }
-}
-
-@media (max-width: 520px) {
-  .report-advanced-filter-card {
-    padding: 15px;
-  }
-
-  .report-product-selector-menu {
-    right: auto;
-    left: 0;
-
-    width: 100%;
-    min-width: 0;
-  }
-
-  .report-period-button {
-    flex-basis: calc(50% - 4px);
-  }
-
-  .report-no-results {
-    align-items: flex-start;
-  }
-
-  .reports-title-row {
-    align-items: flex-start;
-  }
-
-  .report-section {
-    padding: 17px;
-  }
-
-  .report-chart-card,
-  .report-health-card,
-  .report-table-panel {
-    padding: 15px;
-  }
-}
-
 /* =========================================================
    EXPORTACIÓN A EXCEL
    ========================================================= */
@@ -2447,6 +2322,83 @@
 }
 
 @media (max-width: 760px) {
+  .report-advanced-filter-heading {
+    flex-direction: column;
+  }
+
+  .report-advanced-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-period-buttons {
+    width: 100%;
+  }
+
+  .report-period-button {
+    flex: 1 1 120px;
+  }
+
+  .report-filter-actions {
+    flex-direction: column;
+  }
+
+  .report-filter-reset-button,
+  .report-filter-apply-button {
+    width: 100%;
+  }
+
+  .report-active-filter-row {
+    flex-direction: column;
+  }
+
+  .reports-heading {
+    align-items: stretch;
+
+    flex-direction: column;
+  }
+
+  .reports-refresh-button {
+    width: 100%;
+  }
+
+  .report-section-heading {
+    flex-direction: column;
+  }
+
+  .report-inventory-summary,
+  .report-movement-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .report-donut-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .report-donut {
+    height: 210px;
+  }
+
+  .report-toolbar,
+  .report-toolbar-simple {
+    grid-template-columns: 1fr;
+  }
+
+  .report-clear-button {
+    width: 100%;
+  }
+
+  .report-table-heading {
+    flex-direction: column;
+  }
+
+  .report-table {
+    min-width: 760px;
+  }
+
+  .report-bar-chart {
+    height: 280px;
+  }
+
   .reports-heading-actions {
     width: 100%;
     display: grid;
@@ -2464,6 +2416,40 @@
 }
 
 @media (max-width: 520px) {
+  .report-advanced-filter-card {
+    padding: 15px;
+  }
+
+  .report-product-selector-menu {
+    right: auto;
+    left: 0;
+
+    width: 100%;
+    min-width: 0;
+  }
+
+  .report-period-button {
+    flex-basis: calc(50% - 4px);
+  }
+
+  .report-no-results {
+    align-items: flex-start;
+  }
+
+  .reports-title-row {
+    align-items: flex-start;
+  }
+
+  .report-section {
+    padding: 17px;
+  }
+
+  .report-chart-card,
+  .report-health-card,
+  .report-table-panel {
+    padding: 15px;
+  }
+
   .reports-heading-actions {
     grid-template-columns: 1fr;
   }
