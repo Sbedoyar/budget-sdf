@@ -616,23 +616,6 @@
    TABLA DE PRODUCTOS
    ========================================================= */
 
-.products-table-container {
-  overflow-x: auto;
-
-  border: 1px solid #cfe0d8;
-  border-radius: 13px;
-
-  background: rgba(255, 255, 255, 0.48);
-}
-
-.products-table {
-  width: 100%;
-
-  border-collapse: collapse;
-
-  background: transparent;
-}
-
 .products-table th {
   padding: 11px 12px;
 

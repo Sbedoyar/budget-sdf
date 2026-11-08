@@ -530,23 +530,6 @@
    TABLA DE CATEGORÍAS
    ========================================================= */
 
-.categories-table-container {
-  overflow-x: auto;
-
-  border: 1px solid #cfe0d8;
-  border-radius: 13px;
-
-  background: rgba(255, 255, 255, 0.48);
-}
-
-.categories-table {
-  width: 100%;
-
-  border-collapse: collapse;
-
-  background: transparent;
-}
-
 .categories-table th {
   padding: 11px 13px;
 

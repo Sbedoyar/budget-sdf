@@ -798,23 +798,6 @@
    TABLA
    ========================================================= */
 
-.movements-table-container {
-  overflow-x: auto;
-
-  border: 1px solid #cfe0d8;
-  border-radius: 13px;
-
-  background: rgba(255, 255, 255, 0.48);
-}
-
-.movements-table {
-  width: 100%;
-
-  border-collapse: collapse;
-
-  background: transparent;
-}
-
 .movements-table th {
   padding: 11px 12px;
 
