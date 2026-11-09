@@ -28,13 +28,15 @@ El sistema está compuesto por un backend desarrollado con Spring Boot, una base
 
 ### Frontend
 
-- React
-- Vite
+- React 19 y Vite 8
 - JavaScript
 - React Router
 - Axios
-- CSS
-- ESLint
+- Recharts (gráficas del dashboard y reportes)
+- ExcelJS (exportación de reportes a Excel)
+- Google OAuth (inicio de sesión con Google)
+- CSS y ESLint
+- Vitest y React Testing Library (pruebas automatizadas)
 
 ---
 
@@ -88,39 +90,47 @@ com.budgetsdf
 
 ## Arquitectura del frontend
 
-El frontend está organizado separando las responsabilidades principales:
+El frontend separa páginas, componentes, estado compartido y acceso a datos. La estructura actual (resumida) es:
 
 ```text
-src/
+frontend/src/
 ├── api/
 │   └── apiClient.js
 ├── components/
+│   ├── movements/       # Formularios y tablas de movimientos
+│   ├── products/        # Formularios, tablas y diálogo de retiro
+│   ├── reports/         # Filtros, tablas, gráficas y exportación
+│   ├── AppSelect.jsx
 │   └── ProtectedRoute.jsx
+├── contexts/
+│   ├── AuthContext.jsx
+│   └── AuthProvider.jsx
+├── hooks/
+│   ├── useAuth.js
+│   └── useFetch.js
 ├── layouts/
 │   └── MainLayout.jsx
-├── pages/
-│   ├── AlertsPage.jsx
-│   ├── CategoriesPage.jsx
-│   ├── DashboardPage.jsx
-│   ├── LoginPage.jsx
-│   ├── MovementsPage.jsx
-│   ├── ProductsPage.jsx
-│   └── ReportsPage.jsx
-├── services/
-│   ├── alertService.js
-│   ├── authService.js
-│   ├── categoryService.js
-│   ├── movementService.js
-│   ├── productService.js
-│   └── reportService.js
+├── pages/               # Login, dashboard y módulos de inventario
+├── reducers/            # Estado de formularios y filtros
+├── services/            # Servicios para cada recurso de la API
+├── styles/              # Estilos globales, compartidos y por página
+├── utils/               # Errores y generación de archivos Excel
 ├── App.jsx
-├── index.css
 └── main.jsx
 ```
 
-Los servicios se encargan de comunicarse con la API REST mediante Axios.
+`pages/` coordina la presentación y las operaciones de cada pantalla; los componentes de `products/`, `movements/` y `reports/` separan partes reutilizables. Los servicios consumen la API REST a través de `apiClient`, el cliente Axios centralizado.
 
-El componente `ProtectedRoute` controla el acceso a las rutas que requieren autenticación.
+### Estado, autenticación y carga de datos
+
+- `AuthProvider` mantiene la sesión activa y expone `login`, `loginWithGoogle` y `logout`; `useAuth()` permite acceder a ella desde los componentes. `localStorage` conserva los datos entre recargas, pero la gestión de la sesión está centralizada en el contexto.
+- `apiClient` obtiene el token de la sesión proporcionada por `AuthProvider`, incorpora `Authorization: Bearer` y notifica al proveedor los errores `401` que corresponden a la sesión vigente; no administra directamente `localStorage`.
+- `ProtectedRoute` utiliza `useAuth()` para proteger las rutas y React Router para redirigir al inicio de sesión, sin recargar la página.
+- Productos, Movimientos y Reportes utilizan `useReducer` para agrupar el estado de formularios y filtros.
+- `useFetch` reutiliza el control de carga, actualización y errores en las consultas que lo necesitan; `getErrorMessage` obtiene mensajes legibles de los errores de la API.
+- Los archivos de prueba `*.test.js` y `*.test.jsx` se ubican junto a los módulos que verifican.
+
+Los detalles de implementación, ejecución de pruebas y estructura de componentes están en [`frontend/README.md`](frontend/README.md).
 
 ---
 
@@ -130,11 +140,12 @@ El componente `ProtectedRoute` controla el acceso a las rutas que requieren aute
 
 El sistema permite:
 
-- Iniciar sesión mediante usuario y contraseña.
+- Iniciar sesión mediante usuario y contraseña, o mediante Google OAuth cuando está configurado.
 - Almacenar las contraseñas utilizando BCrypt.
 - Generar tokens JWT.
 - Proteger las rutas y endpoints principales.
-- Enviar automáticamente el token desde el frontend.
+- Enviar automáticamente el token desde el frontend mediante `apiClient`.
+- Centralizar el estado de sesión en `AuthProvider`, con persistencia en `localStorage`.
 - Detectar tokens inválidos o expirados.
 - Cerrar automáticamente la sesión cuando el backend responde con código `401`.
 - Cerrar sesión manualmente desde la interfaz.
@@ -188,7 +199,9 @@ El sistema permite:
 - Registrar productos.
 - Consultar productos.
 - Actualizar información de productos.
-- Eliminar productos sin movimientos asociados.
+- Eliminar físicamente productos sin movimientos asociados.
+- Desactivar productos con movimientos, conservando el historial.
+- Consultar productos inactivos y reactivarlos.
 - Asignar una categoría.
 - Definir unidad de medida.
 - Definir stock mínimo.
@@ -202,7 +215,7 @@ currentStock = 0
 
 El stock actual no se modifica directamente desde el módulo de productos.
 
-Su valor cambia únicamente mediante movimientos de inventario.
+Su valor cambia únicamente mediante movimientos de inventario. Al retirar un producto con movimientos, se desactiva en lugar de borrar su historial.
 
 ---
 
@@ -283,6 +296,8 @@ Incluye:
 - Resumen de movimientos por producto.
 - Historial detallado de movimientos.
 
+Desde la interfaz se pueden consultar y filtrar los reportes, así como **exportar a Excel** la vista filtrada o el reporte completo.
+
 ---
 
 ## Base de datos
@@ -326,6 +341,7 @@ http://localhost:8080
 
 ```http
 POST /api/auth/login
+POST /api/auth/google
 ```
 
 ### Categorías
@@ -341,11 +357,13 @@ DELETE /api/categories/{id}
 ### Productos
 
 ```http
-GET    /api/products
+GET    /api/products                  # Por defecto, productos activos
+GET    /api/products?includeInactive=true
 GET    /api/products/{id}
 POST   /api/products
 PUT    /api/products/{id}
-DELETE /api/products/{id}
+DELETE /api/products/{id}             # Elimina o desactiva según historial
+PATCH  /api/products/{id}/reactivate
 ```
 
 ### Movimientos
@@ -411,9 +429,9 @@ El frontend realiza este proceso automáticamente mediante un interceptor de Axi
 
 Si el backend responde con código `401` por un token inválido o expirado, el frontend:
 
-1. Elimina el token almacenado.
-2. Elimina la información de sesión.
-3. Redirige al usuario a la pantalla de inicio de sesión.
+1. Notifica al `AuthProvider` solo si el `401` corresponde a la sesión vigente (no a un inicio de sesión fallido ni a una sesión anterior).
+2. El proveedor limpia el estado de sesión y los datos persistidos en `localStorage`.
+3. Las rutas protegidas redirigen a `/login` mediante React Router, sin usar una recarga forzada.
 
 ---
 
@@ -451,17 +469,15 @@ $env:APP_ADMIN_USERNAME="propietario"
 $env:APP_ADMIN_PASSWORD="tu_contraseña"
 ```
 
+Para la integración con Google también se configura `GOOGLE_CLIENT_ID` con el identificador de cliente OAuth esperado por el backend (`app.google.client-id`). La configuración actual del backend referencia esa variable.
+
 No se deben almacenar contraseñas reales ni secretos directamente en el repositorio.
 
 ---
 
 ## Variables de entorno del frontend
 
-El frontend utiliza la variable:
-
-```text
-VITE_API_URL
-```
+El frontend utiliza `VITE_API_URL` para la dirección del backend y `VITE_GOOGLE_CLIENT_ID` para el proveedor de Google OAuth.
 
 El archivo local:
 
@@ -473,6 +489,7 @@ puede contener:
 
 ```env
 VITE_API_URL=http://localhost:8080
+VITE_GOOGLE_CLIENT_ID=tu-cliente-google.apps.googleusercontent.com
 ```
 
 El archivo `.env` no debe subirse al repositorio.
@@ -493,7 +510,7 @@ Se requiere tener instalado:
 
 - Java 17.
 - MySQL 8.
-- Node.js.
+- Node.js compatible con Vite 8 (el CI utiliza Node.js 24).
 - npm.
 
 El proyecto también incluye Maven Wrapper, por lo que no es obligatorio instalar Maven globalmente.
@@ -565,26 +582,33 @@ Frontend React
 
 ---
 
-## Validación del frontend
+## Validación y pruebas del frontend
 
-Para ejecutar ESLint:
-
-```powershell
-npm run lint
-```
-
-Para generar el build de producción:
+Desde la carpeta `frontend`, ejecutar:
 
 ```powershell
-npm run build
+npm test          # Pruebas automatizadas, ejecución única
+npm run lint      # ESLint
+npm run build     # Build de producción
 ```
 
-Estado de la última validación:
+Para ejecutar las pruebas durante el desarrollo:
 
-```text
-ESLint: sin errores
-Build de producción: exitoso
+```powershell
+npm run test:watch
 ```
+
+Las pruebas se implementan con Vitest, React Testing Library y jsdom, junto a los archivos del código. Cubren autenticación, cliente HTTP, servicios, hooks, reducers, componentes y flujos de páginas.
+
+En la última validación compartida del proyecto se aprobaron **116 pruebas en 19 archivos de prueba**. Esta cifra corresponde a esa ejecución y puede cambiar conforme evolucione el código.
+
+### Integración continua con GitHub Actions
+
+El workflow [`.github/workflows/frontend-ci.yml`](.github/workflows/frontend-ci.yml) se ejecuta automáticamente en los Pull Requests dirigidos a `develop` y `main`.
+
+El job `Frontend checks` utiliza Node.js 24 y ejecuta `npm ci`, `npm test`, `npm run lint` y `npm run build` desde `frontend/`.
+
+Las comprobaciones automatizadas complementan la revisión de los cambios del Pull Request; no la sustituyen.
 
 ---
 
@@ -596,17 +620,7 @@ Desde la carpeta `backend`:
 .\mvnw.cmd test
 ```
 
-Estado actual de las pruebas:
-
-```text
-Tests run: 18
-Failures: 0
-Errors: 0
-Skipped: 0
-BUILD SUCCESS
-```
-
-Las pruebas incluyen servicios y endpoints de integración para validar las principales reglas de negocio.
+El backend incluye pruebas de servicios y endpoints de integración para validar las principales reglas de negocio. Los resultados concretos dependen de cada ejecución.
 
 ---
 
@@ -633,7 +647,8 @@ Este archivo representa una migración histórica y no debe ejecutarse nuevament
 - El stock solo cambia mediante entradas y salidas.
 - No se permite una salida superior al stock disponible.
 - No se puede eliminar una categoría que tenga productos asociados.
-- No se puede eliminar un producto que tenga movimientos registrados.
+- Si se retira un producto con movimientos registrados, se desactiva y se conserva su historial; un producto sin movimientos se puede eliminar físicamente.
+- Un producto inactivo puede reactivarse.
 - Los movimientos se conservan como historial.
 - Las alertas de stock se generan dinámicamente.
 - Los productos sin existencias se identifican como `OUT_OF_STOCK`.
@@ -703,9 +718,9 @@ Actualmente Budget SDF cuenta con:
 
 ### Frontend
 
-- Inicio de sesión.
-- Rutas protegidas.
-- Manejo automático de JWT.
+- Inicio de sesión con contraseña o Google OAuth.
+- Rutas protegidas mediante `useAuth` y React Router.
+- Gestión centralizada de sesión con `AuthProvider` y envío automático del JWT.
 - Cierre automático de sesión ante respuestas `401`.
 - Dashboard con información real del inventario.
 - Gestión visual de categorías.
@@ -715,6 +730,11 @@ Actualmente Budget SDF cuenta con:
 - Alertas de bajo stock y productos sin stock.
 - Reportes de inventario.
 - Reportes de movimientos.
+- Filtros y exportación de reportes a Excel.
+- Componentes separados por módulos de Productos, Movimientos y Reportes.
+- Reducers para formularios y filtros, hooks compartidos y manejo centralizado de errores.
+- Pruebas automatizadas con Vitest y React Testing Library.
+- GitHub Actions para verificar los Pull Requests.
 - Manejo de errores y estados de carga.
 - Diseño responsive.
 - Integración completa con la API REST.
